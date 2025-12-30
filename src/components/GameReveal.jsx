@@ -290,18 +290,14 @@ export function GameReveal({ game, players, updateScore, onBack }) {
                 >
 
                     {/* Header Section */}
-                    <div style={{
-                        padding: '2rem 3rem 1rem 3rem',
-                        textAlign: 'center',
-                        borderBottom: '1px solid rgba(0,0,0,0.05)',
-                        position: 'relative'
-                    }}>
+                    <div className="reveal-header">
                         <button
                             onClick={onBack}
                             style={{
                                 position: 'absolute', top: '2rem', right: '2rem',
                                 background: 'rgba(0,0,0,0.05)', border: 'none', borderRadius: '50%',
-                                width: '40px', height: '40px', cursor: 'pointer', fontSize: '1.2rem', color: '#636e72'
+                                width: '40px', height: '40px', cursor: 'pointer', fontSize: '1.2rem', color: '#636e72',
+                                zIndex: 10
                             }}
                         >
                             ✕
@@ -321,7 +317,7 @@ export function GameReveal({ game, players, updateScore, onBack }) {
                         <p style={{ fontSize: '1.2rem', color: '#6c5ce7', fontWeight: 600 }}>{game.brief}</p>
                     </div>
 
-                    <div style={{ flex: 1, overflowY: 'auto', padding: '3rem', display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '4rem' }}>
+                    <div className="game-reveal-grid">
 
                         {/* Left Col: Rules & Teams */}
                         <div>

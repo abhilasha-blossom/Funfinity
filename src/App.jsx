@@ -111,14 +111,7 @@ function App() {
     <div className="container" style={{ position: 'relative', zIndex: 1, paddingBottom: '4rem' }}>
 
       {/* Solid Static Navbar */}
-      <header style={{
-        display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4rem',
-        background: '#ffffff',
-        padding: '1rem 2rem', borderRadius: '24px',
-        border: '1px solid rgba(0,0,0,0.05)',
-        boxShadow: '0 10px 30px rgba(0,0,0,0.05)',
-        marginTop: '2rem'
-      }}>
+      <header className="app-header">
         <div
           onClick={() => setView('HOME')}
           style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px' }}
@@ -134,7 +127,7 @@ function App() {
           <span style={{ fontSize: '0.8rem', background: '#ffeaa7', padding: '2px 6px', borderRadius: '4px', fontWeight: 700, color: '#d35400' }}>ZONE</span>
         </div>
 
-        <nav style={{ display: 'flex', gap: '1rem' }}>
+        <nav className="app-nav">
           <button className="glass-btn-ghost" onClick={() => setView('SETUP')}>PLAYERS</button>
           <button className="glass-btn-ghost" onClick={() => setView('LEADERBOARD')}>SCORES</button>
           <button className="glass-btn-ghost" onClick={() => setView('GAME_MANAGER')}>CONFIG</button>
