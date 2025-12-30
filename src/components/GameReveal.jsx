@@ -164,8 +164,8 @@ const TeamDraft = ({ players, onComplete, onBack }) => {
                     {/* Teams HUD Grid */}
                     <div style={{
                         position: 'absolute', top: 0, left: 0, width: '100%', padding: '2rem',
-                        display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', gap: '2rem',
-                        zIndex: 10
+                        display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '1.5rem',
+                        zIndex: 10, boxSizing: 'border-box'
                     }}>
                         {teams.map((team, idx) => (
                             <div key={idx} style={{
@@ -497,27 +497,51 @@ export function GameReveal({ game, players, updateScore, onBack }) {
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                                     {teamView && generatedTeams.length > 0 ? (
                                         // TEAM SCORING INPUTS
-                                        generatedTeams.map((team, idx) => (
-                                            <div key={idx} style={{
-                                                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                                                padding: '0.5rem', borderBottom: '1px solid #eee'
-                                            }}>
-                                                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                                    <span style={{ fontWeight: 800, color: COLORS[idx % COLORS.length] }}>TEAM {idx + 1}</span>
-                                                    <span style={{ fontSize: '0.8rem', color: '#b2bec3' }}>
-                                                        {team.map(p => p.name).join(', ')}
-                                                    </span>
+                                        // TEAM SCORING INPUTS
+                                        generatedTeams.map((team, idx) => {
+                                            const teamScore = Number(teamScores[idx]);
+                                            const perPlayer = !isNaN(teamScore) && teamScore > 0
+                                                ? (teamScore / team.length).toFixed(1).replace(/\.0$/, '')
+                                                : null;
+
+                                            return (
+                                                <div key={idx} style={{
+                                                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                                                    padding: '0.8rem', borderBottom: '1px solid #eee',
+                                                    flexWrap: 'wrap', gap: '1rem'
+                                                }}>
+                                                    <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: '150px' }}>
+                                                        <span style={{ fontWeight: 800, color: COLORS[idx % COLORS.length] }}>TEAM {idx + 1}</span>
+                                                        <span style={{ fontSize: '0.8rem', color: '#b2bec3', marginBottom: '0.2rem' }}>
+                                                            {team.map(p => p.name).join(', ')}
+                                                        </span>
+
+                                                        {/* Individual Score Preview */}
+                                                        {perPlayer && (
+                                                            <div style={{
+                                                                fontSize: '0.85rem', color: '#6c5ce7', fontWeight: 600,
+                                                                animation: 'slideDown 0.3s ease-out', display: 'flex', alignItems: 'center', gap: '4px'
+                                                            }}>
+                                                                <span>↘️</span> {perPlayer} pts / player
+                                                            </div>
+                                                        )}
+                                                    </div>
+
+                                                    <input
+                                                        type="number"
+                                                        className="glass-input"
+                                                        style={{
+                                                            width: '100px', padding: '0.8rem', textAlign: 'center',
+                                                            background: 'white', border: `2px solid ${COLORS[idx % COLORS.length]}`,
+                                                            fontSize: '1.2rem', fontWeight: 700, borderRadius: '12px'
+                                                        }}
+                                                        placeholder="PTS"
+                                                        value={teamScores[idx] || ''}
+                                                        onChange={(e) => handleTeamScoreChange(idx, e.target.value)}
+                                                    />
                                                 </div>
-                                                <input
-                                                    type="number"
-                                                    className="glass-input"
-                                                    style={{ width: '80px', padding: '0.8rem', textAlign: 'center', background: 'white', border: `2px solid ${COLORS[idx % COLORS.length]}` }}
-                                                    placeholder="Team Pts"
-                                                    value={teamScores[idx] || ''}
-                                                    onChange={(e) => handleTeamScoreChange(idx, e.target.value)}
-                                                />
-                                            </div>
-                                        ))
+                                            );
+                                        })
                                     ) : (
                                         // INDIVIDUAL SCORING INPUTS
                                         players.map(player => (
@@ -550,6 +574,7 @@ export function GameReveal({ game, players, updateScore, onBack }) {
 
                     <style>{`
           @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+          @keyframes slideDown { from { transform: translateY(-10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
       `}</style>
                 </div >
             )
