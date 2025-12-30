@@ -51,7 +51,7 @@ const RankRow = ({ player, rank, totalScore }) => {
     );
 };
 
-export function Leaderboard({ players, games }) {
+export function Leaderboard({ players, games, onReset }) {
     const calculateTotalScore = (player) => {
         return Object.values(player.scores).reduce((acc, curr) => {
             return acc + (Number(curr) || 0);
@@ -61,7 +61,7 @@ export function Leaderboard({ players, games }) {
     const sortedPlayers = [...players].sort((a, b) => calculateTotalScore(b) - calculateTotalScore(a));
 
     return (
-        <div style={{ padding: '1rem 0' }}>
+        <div style={{ padding: '1rem 0', display: 'flex', flexDirection: 'column', height: '100%' }}>
 
             {/* Header Row */}
             <div style={{ display: 'grid', gridTemplateColumns: '60px 1fr 100px', padding: '0 1.5rem', marginBottom: '1rem', color: '#b2bec3', fontSize: '0.8rem', fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase' }}>
@@ -70,7 +70,7 @@ export function Leaderboard({ players, games }) {
                 <div style={{ textAlign: 'right' }}>Score</div>
             </div>
 
-            <div style={{ maxHeight: '60vh', overflowY: 'auto' }}>
+            <div style={{ flex: 1, overflowY: 'auto' }}>
                 {sortedPlayers.map((player, index) => (
                     <RankRow
                         key={player.id}
@@ -85,6 +85,17 @@ export function Leaderboard({ players, games }) {
                         No players registered yet.
                     </div>
                 )}
+            </div>
+
+            {/* Footer Reset Action */}
+            <div style={{ marginTop: '2rem', paddingTop: '1rem', borderTop: '1px solid rgba(0,0,0,0.05)', textAlign: 'center' }}>
+                <button
+                    onClick={onReset}
+                    className="glass-btn-ghost"
+                    style={{ fontSize: '0.9rem', color: '#b2bec3', fontWeight: 600 }}
+                >
+                    🔄 Reset Tournament Scores
+                </button>
             </div>
         </div>
     );

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-export function GameManager({ games, toggleGameActive, addCustomGame, onBack }) {
+export function GameManager({ games, toggleGameActive, addCustomGame, onBack, onReset, onResetScores }) {
     const [newGame, setNewGame] = useState({ name: '', brief: '', icon: '🎮', type: 'INDIVIDUAL' });
 
     const handleAddGame = () => {
@@ -123,6 +123,55 @@ export function GameManager({ games, toggleGameActive, addCustomGame, onBack }) 
                     <button className="glass-btn" onClick={handleAddGame} style={{ marginTop: '1rem' }}>
                         Deploy Module
                     </button>
+                </div>
+            </div>
+
+            {/* Bottom: Danger Zone */}
+            <div style={{ gridColumn: '1 / -1', marginTop: '1rem', borderTop: '1px solid rgba(214, 48, 49, 0.3)', paddingTop: '2rem' }}>
+                <h3 style={{ fontSize: '1.2rem', color: '#d63031', marginBottom: '1rem', textTransform: 'uppercase', letterSpacing: '2px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <span style={{ fontSize: '1.5rem' }}>⚠️</span> Danger Zone
+                </h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+
+                    {/* Score Reset */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(214, 48, 49, 0.05)', padding: '1.5rem', borderRadius: '16px', border: '1px solid rgba(214, 48, 49, 0.2)' }}>
+                        <div>
+                            <h4 style={{ color: '#d63031', margin: 0, marginBottom: '0.5rem' }}>Scoreboard Wipe</h4>
+                            <p style={{ margin: 0, color: '#636e72', fontSize: '0.9rem' }}>Resets all scores to zero. Players and Games remain intact.</p>
+                        </div>
+                        <button
+                            onClick={onResetScores}
+                            className="glass-btn"
+                            style={{
+                                background: 'rgba(214, 48, 49, 0.1)',
+                                color: '#d63031',
+                                border: '1px solid rgba(214, 48, 49, 0.3)',
+                                boxShadow: 'none',
+                                padding: '0.8rem 2rem'
+                            }}
+                        >
+                            RESET SCORES
+                        </button>
+                    </div>
+
+                    {/* Full Reset */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(214, 48, 49, 0.05)', padding: '1.5rem', borderRadius: '16px', border: '1px solid rgba(214, 48, 49, 0.2)' }}>
+                        <div>
+                            <h4 style={{ color: '#d63031', margin: 0, marginBottom: '0.5rem' }}>Factory Reset</h4>
+                            <p style={{ margin: 0, color: '#636e72', fontSize: '0.9rem' }}>This will wipe ALL players, scores, and custom games. Cannot be undone.</p>
+                        </div>
+                        <button
+                            onClick={onReset}
+                            className="glass-btn"
+                            style={{
+                                background: 'linear-gradient(135deg, #ff7675, #d63031)',
+                                boxShadow: '0 4px 15px rgba(214, 48, 49, 0.3)',
+                                padding: '0.8rem 2rem'
+                            }}
+                        >
+                            RESET SYSTEM
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

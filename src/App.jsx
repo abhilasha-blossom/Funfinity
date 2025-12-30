@@ -163,7 +163,7 @@ const CuteAlert = ({ message, type, onConfirm, onCancel }) => {
 };
 
 function App() {
-  const { players, games, addPlayer, removePlayer, updateScore, toggleGameActive, addCustomGame, deleteGame, isLoaded } = usePartyData();
+  const { players, games, addPlayer, removePlayer, updateScore, toggleGameActive, addCustomGame, deleteGame, resetAllData, resetScores, isLoaded } = usePartyData();
   const [view, setView] = useState('LANDING');
   const [selectedGameId, setSelectedGameId] = useState(null);
   const [alertConfig, setAlertConfig] = useState(null); // { message, type, onConfirm }
@@ -296,6 +296,26 @@ function App() {
               toggleGameActive={toggleGameActive}
               addCustomGame={addCustomGame}
               onBack={() => setView('HOME')}
+              onReset={() => {
+                setAlertConfig({
+                  type: 'delete',
+                  message: '⚠️ FATAL WARNING: This will purge all scores, players, and custom data forever. Are you absolutely sure?',
+                  onConfirm: () => {
+                    resetAllData();
+                    setAlertConfig(null);
+                  }
+                });
+              }}
+              onResetScores={() => {
+                setAlertConfig({
+                  type: 'delete',
+                  message: 'This will reset ALL scores to zero. Players and Games will remain. Continue?',
+                  onConfirm: () => {
+                    resetScores();
+                    setAlertConfig(null);
+                  }
+                });
+              }}
             />
           </div>
         )}
@@ -306,7 +326,20 @@ function App() {
               <h2 style={{ background: 'linear-gradient(45deg, #f1c40f, #e67e22)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', fontSize: '2.5rem' }}>Hall of Fame</h2>
               <button className="glass-btn-ghost" onClick={() => setView('HOME')}>Close</button>
             </div>
-            <Leaderboard players={players} games={games} />
+            <Leaderboard
+              players={players}
+              games={games}
+              onReset={() => {
+                setAlertConfig({
+                  type: 'delete',
+                  message: 'This will reset ALL scores to zero. Players and Games will remain. Continue?',
+                  onConfirm: () => {
+                    resetScores();
+                    setAlertConfig(null);
+                  }
+                });
+              }}
+            />
           </div>
         )}
       </main>

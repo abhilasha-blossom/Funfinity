@@ -114,6 +114,16 @@ export const usePartyData = () => {
         ]);
     };
 
+    const resetAllData = () => {
+        localStorage.removeItem(STORAGE_KEY);
+        // Force reload to clear all state and re-mount
+        window.location.reload();
+    };
+
+    const resetScores = () => {
+        setPlayers(prev => prev.map(p => ({ ...p, scores: {} })));
+    };
+
     return {
         players,
         games,
@@ -123,6 +133,8 @@ export const usePartyData = () => {
         toggleGameActive,
         addCustomGame,
         deleteGame,
+        resetAllData,
+        resetScores,
         isLoaded
     };
 };
