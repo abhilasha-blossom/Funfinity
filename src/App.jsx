@@ -55,9 +55,10 @@ const GameZoneCard = ({ game, onClick, onRemove }) => {
       </h3>
 
       <div style={{
-        color: '#6c5ce7', fontSize: '0.8rem', fontWeight: 700, letterSpacing: '0.1em',
-        textTransform: 'uppercase', background: 'rgba(108, 92, 231, 0.1)', padding: '5px 12px', borderRadius: '10px',
-        zIndex: 1
+        color: '#6c5ce7', fontSize: '0.9rem', fontWeight: 800, letterSpacing: '0.1em',
+        textTransform: 'uppercase', background: 'white', padding: '8px 20px', borderRadius: '50px',
+        zIndex: 1, boxShadow: '0 4px 15px rgba(108, 92, 231, 0.15)',
+        transition: 'all 0.3s ease'
       }}>
         START MISSION
       </div>
