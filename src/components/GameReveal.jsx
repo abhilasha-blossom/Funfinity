@@ -276,7 +276,7 @@ export function GameReveal({ game, players, updateScore, onBack }) {
         }
     };
 
-    const handleSave = () => {
+    const handleSave = (keepOpen = false) => {
         if (teamView && generatedTeams.length > 0) {
             // Distribute Team Scores
             generatedTeams.forEach((team, idx) => {
@@ -284,7 +284,11 @@ export function GameReveal({ game, players, updateScore, onBack }) {
                 if (!isNaN(tScore) && teamScores[idx] !== undefined && teamScores[idx] !== '') {
                     // Divide equally (keep decimals if any)
                     const splitScore = tScore / team.length;
-                    team.forEach(p => updateScore(p.id, game.id, splitScore));
+                    team.forEach(p => {
+                        updateScore(p.id, game.id, splitScore);
+                        // Update local scores immediately for 1v1 view
+                        setLocalScores(prev => ({ ...prev, [p.id]: splitScore }));
+                    });
                 }
             });
         } else {
@@ -295,7 +299,9 @@ export function GameReveal({ game, players, updateScore, onBack }) {
                 updateScore(p.id, game.id, numVal);
             });
         }
-        onBack();
+        if (!keepOpen) {
+            onBack();
+        }
     };
 
     const handleDraftComplete = (teamsArray) => {
@@ -541,51 +547,87 @@ export function GameReveal({ game, players, updateScore, onBack }) {
 
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                                             {teamView && generatedTeams.length > 0 ? (
-                                                // TEAM SCORING INPUTS
-                                                generatedTeams.map((team, idx) => {
-                                                    const teamScore = Number(teamScores[idx]);
-                                                    const perPlayer = !isNaN(teamScore) && teamScore > 0
-                                                        ? (teamScore / team.length).toFixed(1).replace(/\.0$/, '')
-                                                        : null;
+                                                <>
+                                                    {/* TEAM / 1v1 SCORING INPUTS */}
+                                                    {generatedTeams.map((team, idx) => {
+                                                        const teamScore = Number(teamScores[idx]);
+                                                        const perPlayer = !isNaN(teamScore) && teamScore > 0
+                                                            ? (teamScore / team.length).toFixed(1).replace(/\.0$/, '')
+                                                            : null;
 
-                                                    return (
-                                                        <div key={idx} style={{
-                                                            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                                                            padding: '0.8rem', borderBottom: '1px solid #eee',
-                                                            flexWrap: 'wrap', gap: '1rem'
-                                                        }}>
-                                                            <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: '150px' }}>
-                                                                <span style={{ fontWeight: 800, color: COLORS[idx % COLORS.length] }}>TEAM {idx + 1}</span>
-                                                                <span style={{ fontSize: '0.8rem', color: '#b2bec3', marginBottom: '0.2rem' }}>
-                                                                    {team.map(p => p.name).join(', ')}
-                                                                </span>
+                                                        return (
+                                                            <div key={idx} style={{
+                                                                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                                                                padding: '0.8rem', borderBottom: '1px solid #eee',
+                                                                flexWrap: 'wrap', gap: '1rem'
+                                                            }}>
+                                                                <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: '150px' }}>
+                                                                    <span style={{ fontWeight: 800, color: COLORS[idx % COLORS.length], fontSize: generatedTeams.length === 2 ? '1.5rem' : '1rem' }}>
+                                                                        {generatedTeams.length === 2 && team.length === 1 ? 'CHALLENGER ' + (idx + 1) : 'TEAM ' + (idx + 1)}
+                                                                    </span>
+                                                                    <span style={{ fontSize: generatedTeams.length === 2 ? '1.2rem' : '0.8rem', color: '#2d3436', marginBottom: '0.2rem', fontWeight: 600 }}>
+                                                                        {team.map(p => p.name).join(', ')}
+                                                                    </span>
+                                                                </div>
 
-                                                                {/* Individual Score Preview */}
-                                                                {perPlayer && (
-                                                                    <div style={{
-                                                                        fontSize: '0.85rem', color: '#6c5ce7', fontWeight: 600,
-                                                                        animation: 'slideDown 0.3s ease-out', display: 'flex', alignItems: 'center', gap: '4px'
+                                                                <input
+                                                                    type="number"
+                                                                    className="glass-input"
+                                                                    style={{
+                                                                        width: '100px', padding: '0.8rem', textAlign: 'center',
+                                                                        background: 'white', border: `2px solid ${COLORS[idx % COLORS.length]}`,
+                                                                        fontSize: '1.2rem', fontWeight: 700, borderRadius: '12px'
+                                                                    }}
+                                                                    placeholder="PTS"
+                                                                    value={teamScores[idx] || ''}
+                                                                    onChange={(e) => handleTeamScoreChange(idx, e.target.value)}
+                                                                />
+                                                            </div>
+                                                        );
+                                                    })}
+
+                                                    {/* 1v1 SPECIFIC: ALL PLAYERS SCOREBOARD & NEXT BUTTON */}
+                                                    {generatedTeams.length === 2 && generatedTeams[0].length === 1 && (
+                                                        <div style={{ marginTop: '2rem', borderTop: '2px dashed #b2bec3', paddingTop: '1rem' }}>
+                                                            <h4 style={{ color: '#636e72', marginBottom: '1rem' }}>CURRENT STANDINGS</h4>
+                                                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: '0.5rem', maxHeight: '150px', overflowY: 'auto' }}>
+                                                                {[...players].sort((a, b) => (Number(localScores[b.id]) || 0) - (Number(localScores[a.id]) || 0)).map(p => (
+                                                                    <div key={p.id} style={{
+                                                                        background: 'rgba(0,0,0,0.03)', padding: '0.5rem', borderRadius: '8px',
+                                                                        display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem'
                                                                     }}>
-                                                                        <span>↘️</span> {perPlayer} pts / player
+                                                                        <span>{p.name}</span>
+                                                                        <span style={{ fontWeight: 700 }}>{localScores[p.id] || 0}</span>
                                                                     </div>
-                                                                )}
+                                                                ))}
                                                             </div>
 
-                                                            <input
-                                                                type="number"
-                                                                className="glass-input"
-                                                                style={{
-                                                                    width: '100px', padding: '0.8rem', textAlign: 'center',
-                                                                    background: 'white', border: `2px solid ${COLORS[idx % COLORS.length]}`,
-                                                                    fontSize: '1.2rem', fontWeight: 700, borderRadius: '12px'
-                                                                }}
-                                                                placeholder="PTS"
-                                                                value={teamScores[idx] || ''}
-                                                                onChange={(e) => handleTeamScoreChange(idx, e.target.value)}
-                                                            />
+                                                            <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
+                                                                <button
+                                                                    className="glass-btn"
+                                                                    onClick={() => {
+                                                                        // Save first
+                                                                        handleSave(true); // true = keepOpen
+                                                                        // Reset Inputs
+                                                                        setTeamScores({});
+                                                                        // New 1v1
+                                                                        selectMode('1V1');
+                                                                    }}
+                                                                    style={{ flex: 1, background: 'linear-gradient(135deg, #00b894, #00cec9)', color: 'white' }}
+                                                                >
+                                                                    SAVE & NEXT DUEL ⚔️
+                                                                </button>
+                                                                <button
+                                                                    className="glass-btn-ghost"
+                                                                    onClick={() => handleSave(false)}
+                                                                    style={{ flex: 1 }}
+                                                                >
+                                                                    FINISH
+                                                                </button>
+                                                            </div>
                                                         </div>
-                                                    );
-                                                })
+                                                    )}
+                                                </>
                                             ) : (
                                                 // INDIVIDUAL SCORING INPUTS
                                                 players.map(player => (
@@ -604,11 +646,14 @@ export function GameReveal({ game, players, updateScore, onBack }) {
                                             )}
                                         </div>
 
-                                        <div style={{ marginTop: '3rem' }}>
-                                            <button className="glass-btn" onClick={handleSave} style={{ width: '100%', borderRadius: '20px' }}>
-                                                Save & Close
-                                            </button>
-                                        </div>
+                                        {/* Hide Default Save Button if in 1v1 mode (since we have custom buttons) */}
+                                        {!(generatedTeams.length === 2 && generatedTeams[0].length === 1) && (
+                                            <div style={{ marginTop: '3rem' }}>
+                                                <button className="glass-btn" onClick={() => handleSave(false)} style={{ width: '100%', borderRadius: '20px' }}>
+                                                    Save & Close
+                                                </button>
+                                            </div>
+                                        )}
                                     </>
                                 )}
                             </div>
