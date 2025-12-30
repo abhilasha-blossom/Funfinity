@@ -247,8 +247,8 @@ export function GameReveal({ game, players, updateScore, onBack }) {
     const [teamScores, setTeamScores] = useState({}); // New: For team mode scoring
     const [generatedTeams, setGeneratedTeams] = useState([]);
 
-    // Stages: 'MODE_SELECT' -> 'DRAFT' (optional) -> 'GAME'
-    const [stage, setStage] = useState('MODE_SELECT');
+    // Stages: 'INFO' -> 'MODE_SELECT' -> 'DRAFT' (optional) -> 'GAME'
+    const [stage, setStage] = useState('INFO');
     const [teamView, setTeamView] = useState(false);
 
     // Constants
@@ -325,7 +325,7 @@ export function GameReveal({ game, players, updateScore, onBack }) {
                     display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center'
                 }}>
                     <button
-                        onClick={onBack}
+                        onClick={() => setStage('INFO')}
                         style={{
                             position: 'absolute', top: '2rem', left: '2rem',
                             background: 'white', border: 'none', borderRadius: '50px',
@@ -333,7 +333,7 @@ export function GameReveal({ game, players, updateScore, onBack }) {
                             fontSize: '1rem'
                         }}
                     >
-                        ← BACK TO ARCADE
+                        ← BACK TO DETAILS
                     </button>
 
                     <h1 style={{ color: 'white', fontSize: '3rem', marginBottom: '4rem' }}>SELECT CHALLENGE MODE</h1>
@@ -388,8 +388,8 @@ export function GameReveal({ game, players, updateScore, onBack }) {
                 />
             )}
 
-            {/* STAGE 3: GAME SCREEN */}
-            {stage === 'GAME' && (
+            {/* STAGE 3: GAME SCREEN (Used for INFO and SCORING) */}
+            {(stage === 'GAME' || stage === 'INFO') && (
                 <div style={{
                     position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
                     zIndex: 500,
@@ -445,9 +445,11 @@ export function GameReveal({ game, players, updateScore, onBack }) {
                                 <div style={{ marginBottom: '3rem' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                                         <h3 style={{ fontSize: '1.1rem', textTransform: 'uppercase', color: '#b2bec3', letterSpacing: '2px', fontWeight: 700 }}>TEAMS</h3>
-                                        <button className="glass-btn-ghost" onClick={() => setShowDraft(true)} style={{ fontSize: '0.8rem', padding: '0.5rem 1rem' }}>
-                                            {generatedTeams.length > 0 ? '🔄 Restart Draft' : '🎲 Start Team Draft'}
-                                        </button>
+                                        {stage === 'GAME' && (
+                                            <button className="glass-btn-ghost" onClick={() => setShowDraft(true)} style={{ fontSize: '0.8rem', padding: '0.5rem 1rem' }}>
+                                                {generatedTeams.length > 0 ? '🔄 Restart Draft' : '🎲 Start Team Draft'}
+                                            </button>
+                                        )}
                                     </div>
 
                                     {teamView && generatedTeams.length > 0 ? (
@@ -465,7 +467,7 @@ export function GameReveal({ game, players, updateScore, onBack }) {
                                         </div>
                                     ) : (
                                         <div style={{ padding: '2rem', textAlign: 'center', background: 'rgba(0,0,0,0.02)', borderRadius: '16px', fontStyle: 'italic', color: '#b2bec3' }}>
-                                            Click 'Start Team Draft' to configure and assign teams.
+                                            {stage === 'INFO' ? 'Select Mode to configure teams.' : "Click 'Start Team Draft' to configure and assign teams."}
                                         </div>
                                     )}
                                 </div>
@@ -487,84 +489,100 @@ export function GameReveal({ game, players, updateScore, onBack }) {
                                 </ul>
                             </div>
 
-                            {/* Right Col: Scores */}
-                            <div style={{ background: '#fdfdfd', borderRadius: '24px', padding: '2rem', boxShadow: 'inset 0 0 20px rgba(0,0,0,0.02)' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-                                    <h3 style={{ fontSize: '1.5rem' }}>Results</h3>
-                                    <div style={{ fontSize: '0.9rem', color: '#b2bec3' }}>Enter Points</div>
-                                </div>
+                            {/* Right Col: Scores OR Setup Button */}
+                            <div style={{ background: '#fdfdfd', borderRadius: '24px', padding: '2rem', boxShadow: 'inset 0 0 20px rgba(0,0,0,0.02)', display: 'flex', flexDirection: 'column', justifyContent: stage === 'INFO' ? 'center' : 'flex-start' }}>
+                                {stage === 'INFO' ? (
+                                    <div style={{ textAlign: 'center', padding: '2rem' }}>
+                                        <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>⚙️</div>
+                                        <h3 style={{ fontSize: '1.5rem', marginBottom: '1rem', color: '#2d3436' }}>Ready to Play?</h3>
+                                        <p style={{ color: '#636e72', marginBottom: '2rem' }}>Configure teams and mode to start scoring.</p>
+                                        <button
+                                            className="glass-btn"
+                                            onClick={() => setStage('MODE_SELECT')}
+                                            style={{ width: '100%', borderRadius: '20px', padding: '1.2rem', fontSize: '1.2rem' }}
+                                        >
+                                            CONFIGURE MISSION
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+                                            <h3 style={{ fontSize: '1.5rem' }}>Results</h3>
+                                            <div style={{ fontSize: '0.9rem', color: '#b2bec3' }}>Enter Points</div>
+                                        </div>
 
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                                    {teamView && generatedTeams.length > 0 ? (
-                                        // TEAM SCORING INPUTS
-                                        // TEAM SCORING INPUTS
-                                        generatedTeams.map((team, idx) => {
-                                            const teamScore = Number(teamScores[idx]);
-                                            const perPlayer = !isNaN(teamScore) && teamScore > 0
-                                                ? (teamScore / team.length).toFixed(1).replace(/\.0$/, '')
-                                                : null;
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                                            {teamView && generatedTeams.length > 0 ? (
+                                                // TEAM SCORING INPUTS
+                                                generatedTeams.map((team, idx) => {
+                                                    const teamScore = Number(teamScores[idx]);
+                                                    const perPlayer = !isNaN(teamScore) && teamScore > 0
+                                                        ? (teamScore / team.length).toFixed(1).replace(/\.0$/, '')
+                                                        : null;
 
-                                            return (
-                                                <div key={idx} style={{
-                                                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                                                    padding: '0.8rem', borderBottom: '1px solid #eee',
-                                                    flexWrap: 'wrap', gap: '1rem'
-                                                }}>
-                                                    <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: '150px' }}>
-                                                        <span style={{ fontWeight: 800, color: COLORS[idx % COLORS.length] }}>TEAM {idx + 1}</span>
-                                                        <span style={{ fontSize: '0.8rem', color: '#b2bec3', marginBottom: '0.2rem' }}>
-                                                            {team.map(p => p.name).join(', ')}
-                                                        </span>
+                                                    return (
+                                                        <div key={idx} style={{
+                                                            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                                                            padding: '0.8rem', borderBottom: '1px solid #eee',
+                                                            flexWrap: 'wrap', gap: '1rem'
+                                                        }}>
+                                                            <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: '150px' }}>
+                                                                <span style={{ fontWeight: 800, color: COLORS[idx % COLORS.length] }}>TEAM {idx + 1}</span>
+                                                                <span style={{ fontSize: '0.8rem', color: '#b2bec3', marginBottom: '0.2rem' }}>
+                                                                    {team.map(p => p.name).join(', ')}
+                                                                </span>
 
-                                                        {/* Individual Score Preview */}
-                                                        {perPlayer && (
-                                                            <div style={{
-                                                                fontSize: '0.85rem', color: '#6c5ce7', fontWeight: 600,
-                                                                animation: 'slideDown 0.3s ease-out', display: 'flex', alignItems: 'center', gap: '4px'
-                                                            }}>
-                                                                <span>↘️</span> {perPlayer} pts / player
+                                                                {/* Individual Score Preview */}
+                                                                {perPlayer && (
+                                                                    <div style={{
+                                                                        fontSize: '0.85rem', color: '#6c5ce7', fontWeight: 600,
+                                                                        animation: 'slideDown 0.3s ease-out', display: 'flex', alignItems: 'center', gap: '4px'
+                                                                    }}>
+                                                                        <span>↘️</span> {perPlayer} pts / player
+                                                                    </div>
+                                                                )}
                                                             </div>
-                                                        )}
+
+                                                            <input
+                                                                type="number"
+                                                                className="glass-input"
+                                                                style={{
+                                                                    width: '100px', padding: '0.8rem', textAlign: 'center',
+                                                                    background: 'white', border: `2px solid ${COLORS[idx % COLORS.length]}`,
+                                                                    fontSize: '1.2rem', fontWeight: 700, borderRadius: '12px'
+                                                                }}
+                                                                placeholder="PTS"
+                                                                value={teamScores[idx] || ''}
+                                                                onChange={(e) => handleTeamScoreChange(idx, e.target.value)}
+                                                            />
+                                                        </div>
+                                                    );
+                                                })
+                                            ) : (
+                                                // INDIVIDUAL SCORING INPUTS
+                                                players.map(player => (
+                                                    <div key={player.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                                        <span style={{ fontWeight: 600, fontSize: '1.1rem' }}>{player.name}</span>
+                                                        <input
+                                                            type="number"
+                                                            className="glass-input"
+                                                            style={{ width: '80px', padding: '0.8rem', textAlign: 'center', background: 'white' }}
+                                                            placeholder="-"
+                                                            value={localScores[player.id]}
+                                                            onChange={(e) => handleScoreChange(player.id, e.target.value)}
+                                                        />
                                                     </div>
+                                                ))
+                                            )}
+                                        </div>
 
-                                                    <input
-                                                        type="number"
-                                                        className="glass-input"
-                                                        style={{
-                                                            width: '100px', padding: '0.8rem', textAlign: 'center',
-                                                            background: 'white', border: `2px solid ${COLORS[idx % COLORS.length]}`,
-                                                            fontSize: '1.2rem', fontWeight: 700, borderRadius: '12px'
-                                                        }}
-                                                        placeholder="PTS"
-                                                        value={teamScores[idx] || ''}
-                                                        onChange={(e) => handleTeamScoreChange(idx, e.target.value)}
-                                                    />
-                                                </div>
-                                            );
-                                        })
-                                    ) : (
-                                        // INDIVIDUAL SCORING INPUTS
-                                        players.map(player => (
-                                            <div key={player.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                                <span style={{ fontWeight: 600, fontSize: '1.1rem' }}>{player.name}</span>
-                                                <input
-                                                    type="number"
-                                                    className="glass-input"
-                                                    style={{ width: '80px', padding: '0.8rem', textAlign: 'center', background: 'white' }}
-                                                    placeholder="-"
-                                                    value={localScores[player.id]}
-                                                    onChange={(e) => handleScoreChange(player.id, e.target.value)}
-                                                />
-                                            </div>
-                                        ))
-                                    )}
-                                </div>
-
-                                <div style={{ marginTop: '3rem' }}>
-                                    <button className="glass-btn" onClick={handleSave} style={{ width: '100%', borderRadius: '20px' }}>
-                                        Save & Close
-                                    </button>
-                                </div>
+                                        <div style={{ marginTop: '3rem' }}>
+                                            <button className="glass-btn" onClick={handleSave} style={{ width: '100%', borderRadius: '20px' }}>
+                                                Save & Close
+                                            </button>
+                                        </div>
+                                    </>
+                                )}
                             </div>
 
                         </div>
