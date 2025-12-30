@@ -21,13 +21,36 @@ export const usePartyData = () => {
 
             // Use saved players, or default if empty
             if (parsed.players && parsed.players.length > 0) {
-                setPlayers(parsed.players);
+                // Ensure legacy players get an avatar if missing
+                const patchedPlayers = parsed.players.map(p => ({
+                    ...p,
+                    avatarSeed: p.avatarSeed || Math.random().toString(36)
+                }));
+                setPlayers(patchedPlayers);
             } else {
-                setPlayers(DEFAULT_PLAYERS.map(name => ({
-                    id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
-                    name,
-                    scores: {}
-                })));
+                setPlayers(DEFAULT_PLAYERS.map((name) => {
+                    const GIRLS_NAMES = ['Ananya', 'Shruti', 'Nitya']; // Specific overrides
+                    const GIRL_SEEDS = ['Alice', 'Bella', 'Daisy', 'Eva', 'Fiona', 'Grace', 'Hanna', 'Ivy', 'Julia', 'Katie'];
+                    const BOY_SEEDS = ['Adam', 'Ben', 'Caleb', 'Daniel', 'Ethan', 'Felix', 'Gabriel', 'Henry', 'Isaac', 'Jack'];
+
+                    let seed;
+                    if (GIRLS_NAMES.includes(name)) {
+                        // Deterministic assignment for stability
+                        seed = GIRL_SEEDS[GIRLS_NAMES.indexOf(name) % GIRL_SEEDS.length];
+                    } else {
+                        // Deterministic assignment for boys too based on name length/char code? 
+                        // Or just random? Let's use index based on the full list to avoid "random" changes on reload if localstorage is cleared
+                        const index = DEFAULT_PLAYERS.indexOf(name);
+                        seed = BOY_SEEDS[index % BOY_SEEDS.length];
+                    }
+
+                    return {
+                        id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+                        name,
+                        avatarSeed: seed,
+                        scores: {}
+                    };
+                }));
             }
 
             // Merge saved games with initial games to ensure new predefined games appear if we update code
@@ -51,6 +74,7 @@ export const usePartyData = () => {
             setPlayers(DEFAULT_PLAYERS.map(name => ({
                 id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
                 name,
+                avatarSeed: Math.floor(Math.random() * 1000).toString(),
                 scores: {}
             })));
         }
@@ -64,15 +88,22 @@ export const usePartyData = () => {
         }
     }, [players, games, isLoaded]);
 
-    const addPlayer = (name) => {
+    const addPlayer = (name, avatarSeed) => {
         setPlayers(prev => [
             ...prev,
             {
                 id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
                 name,
+                avatarSeed: avatarSeed || Math.floor(Math.random() * 1000).toString(),
                 scores: {}
             }
         ]);
+    };
+
+    const updatePlayerAvatar = (id, newSeed) => {
+        setPlayers(prev => prev.map(p =>
+            p.id === id ? { ...p, avatarSeed: newSeed } : p
+        ));
     };
 
     const removePlayer = (id) => {
@@ -125,16 +156,10 @@ export const usePartyData = () => {
     };
 
     return {
-        players,
-        games,
-        addPlayer,
-        removePlayer,
-        updateScore,
-        toggleGameActive,
-        addCustomGame,
-        deleteGame,
-        resetAllData,
-        resetScores,
+        players, games, addPlayer, removePlayer, updatePlayerAvatar,
+        updateScore, toggleGameActive, addCustomGame, deleteGame,
+        resetAllData, resetScores,
         isLoaded
     };
 };
+

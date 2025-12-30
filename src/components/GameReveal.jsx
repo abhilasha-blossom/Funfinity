@@ -309,6 +309,17 @@ export function GameReveal({ game, players, updateScore, onBack }) {
         if (mode === 'SOLO') {
             setTeamView(false); // No teams needed
             setStage('GAME');
+        } else if (mode === '1V1') {
+            // Instant 1v1 Logic
+            const shuffled = [...players].sort(() => 0.5 - Math.random());
+            const p1 = shuffled[0];
+            const p2 = shuffled[1];
+            // Format as two teams of 1
+            const duelTeams = [[p1], [p2]];
+            setGeneratedTeams(duelTeams);
+            setTeamScores({}); // Reset scores
+            setTeamView(true);
+            setStage('GAME');
         } else {
             setTeamView(true);
             setStage('DRAFT');
@@ -338,22 +349,39 @@ export function GameReveal({ game, players, updateScore, onBack }) {
 
                     <h1 style={{ color: 'white', fontSize: '3rem', marginBottom: '4rem' }}>SELECT CHALLENGE MODE</h1>
 
-                    <div style={{ display: 'flex', gap: '4rem' }}>
+                    <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap', justifyContent: 'center' }}>
                         {/* Solo Card */}
                         <div
                             onClick={() => selectMode('SOLO')}
                             className="mode-card"
                             style={{
                                 background: 'linear-gradient(135deg, #a29bfe, #6c5ce7)',
-                                width: '300px', height: '400px', borderRadius: '30px',
+                                width: '250px', height: '350px', borderRadius: '30px',
                                 display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
                                 cursor: 'pointer', border: '4px solid rgba(255,255,255,0.2)',
                                 transition: 'transform 0.3s'
                             }}
                         >
-                            <div style={{ fontSize: '6rem', marginBottom: '2rem' }}>👤</div>
-                            <h2 style={{ color: 'white', fontSize: '2.5rem' }}>SOLO</h2>
-                            <p style={{ color: 'rgba(255,255,255,0.8)', marginTop: '1rem' }}>Individual Scoring</p>
+                            <div style={{ fontSize: '5rem', marginBottom: '2rem' }}>👤</div>
+                            <h2 style={{ color: 'white', fontSize: '2rem' }}>SOLO</h2>
+                            <p style={{ color: 'rgba(255,255,255,0.8)', marginTop: '1rem' }}>Individual</p>
+                        </div>
+
+                        {/* 1 VS 1 Card */}
+                        <div
+                            onClick={() => selectMode('1V1')}
+                            className="mode-card"
+                            style={{
+                                background: 'linear-gradient(135deg, #e17055, #d63031)',
+                                width: '250px', height: '350px', borderRadius: '30px',
+                                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                                cursor: 'pointer', border: '4px solid rgba(255,255,255,0.2)',
+                                transition: 'transform 0.3s'
+                            }}
+                        >
+                            <div style={{ fontSize: '5rem', marginBottom: '2rem' }}>⚔️</div>
+                            <h2 style={{ color: 'white', fontSize: '2rem' }}>1 vs 1</h2>
+                            <p style={{ color: 'rgba(255,255,255,0.8)', marginTop: '1rem' }}>Duel Mode</p>
                         </div>
 
                         {/* Team Card */}
@@ -361,15 +389,15 @@ export function GameReveal({ game, players, updateScore, onBack }) {
                             onClick={() => selectMode('TEAM')}
                             className="mode-card"
                             style={{
-                                background: 'linear-gradient(135deg, #ff7675, #d63031)',
-                                width: '300px', height: '400px', borderRadius: '30px',
+                                background: 'linear-gradient(135deg, #fdcb6e, #e1b12c)',
+                                width: '250px', height: '350px', borderRadius: '30px',
                                 display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
                                 cursor: 'pointer', border: '4px solid rgba(255,255,255,0.2)',
                                 transition: 'transform 0.3s'
                             }}
                         >
-                            <div style={{ fontSize: '6rem', marginBottom: '2rem' }}>👥</div>
-                            <h2 style={{ color: 'white', fontSize: '2.5rem' }}>TEAM</h2>
+                            <div style={{ fontSize: '5rem', marginBottom: '2rem' }}>👥</div>
+                            <h2 style={{ color: 'white', fontSize: '2rem' }}>TEAM</h2>
                             <p style={{ color: 'rgba(255,255,255,0.8)', marginTop: '1rem' }}>Squad Battle</p>
                         </div>
                     </div>
@@ -446,7 +474,7 @@ export function GameReveal({ game, players, updateScore, onBack }) {
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                                         <h3 style={{ fontSize: '1.1rem', textTransform: 'uppercase', color: '#b2bec3', letterSpacing: '2px', fontWeight: 700 }}>TEAMS</h3>
                                         {stage === 'GAME' && (
-                                            <button className="glass-btn-ghost" onClick={() => setShowDraft(true)} style={{ fontSize: '0.8rem', padding: '0.5rem 1rem' }}>
+                                            <button className="glass-btn-ghost" onClick={() => setStage('DRAFT')} style={{ fontSize: '0.8rem', padding: '0.5rem 1rem' }}>
                                                 {generatedTeams.length > 0 ? '🔄 Restart Draft' : '🎲 Start Team Draft'}
                                             </button>
                                         )}

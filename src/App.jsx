@@ -5,6 +5,7 @@ import { GameReveal } from './components/GameReveal';
 import { Leaderboard } from './components/Leaderboard';
 import { GameManager } from './components/GameManager';
 import { HomeHero } from './components/HomeHero';
+import { Podium } from './components/Podium';
 
 // GameZone Card with 3D Sticker Icon
 const GameZoneCard = ({ game, onClick, onRemove }) => {
@@ -163,7 +164,7 @@ const CuteAlert = ({ message, type, onConfirm, onCancel }) => {
 };
 
 function App() {
-  const { players, games, addPlayer, removePlayer, updateScore, toggleGameActive, addCustomGame, deleteGame, resetAllData, resetScores, isLoaded } = usePartyData();
+  const { players, games, addPlayer, removePlayer, updatePlayerAvatar, updateScore, toggleGameActive, addCustomGame, deleteGame, resetAllData, resetScores, isLoaded } = usePartyData();
   const [view, setView] = useState('LANDING');
   const [selectedGameId, setSelectedGameId] = useState(null);
   const [alertConfig, setAlertConfig] = useState(null); // { message, type, onConfirm }
@@ -269,7 +270,7 @@ function App() {
         {view === 'SETUP' && (
           <div className="glass-card" style={{ maxWidth: '900px', margin: '0 auto', padding: '3rem' }}>
             <h2 style={{ textAlign: 'center', marginBottom: '3rem', color: '#6c5ce7', fontSize: '2.5rem' }}>Player Registry</h2>
-            <Setup players={players} addPlayer={addPlayer} removePlayer={removePlayer} />
+            <Setup players={players} addPlayer={addPlayer} removePlayer={removePlayer} updatePlayerAvatar={updatePlayerAvatar} />
           </div>
         )}
 
@@ -320,6 +321,8 @@ function App() {
           </div>
         )}
 
+
+
         {view === 'LEADERBOARD' && (
           <div className="glass-card" style={{ maxWidth: '900px', margin: '0 auto', padding: '3rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3rem' }}>
@@ -339,8 +342,13 @@ function App() {
                   }
                 });
               }}
+              onShowPodium={() => setView('PODIUM')}
             />
           </div>
+        )}
+
+        {view === 'PODIUM' && (
+          <Podium players={players} onBack={() => setView('LEADERBOARD')} />
         )}
       </main>
     </div>

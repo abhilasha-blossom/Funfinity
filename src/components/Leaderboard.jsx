@@ -32,11 +32,22 @@ const RankRow = ({ player, rank, totalScore }) => {
                 {rank} {badgeIcon}
             </div>
 
-            {/* Player Info */}
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-                <span style={{ fontSize: '1.2rem', fontWeight: 700, color: '#2d3436' }}>{player.name}</span>
-                <div style={{ height: '4px', width: '100%', maxWidth: '200px', background: 'rgba(0,0,0,0.05)', borderRadius: '4px', marginTop: '4px', overflow: 'hidden' }}>
-                    <div style={{ height: '100%', width: `${Math.min(totalScore, 100)}%`, background: rankColor, borderRadius: '4px' }}></div>
+            {/* Player Info with Avatar */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <img
+                    src={`https://api.dicebear.com/9.x/adventurer/svg?seed=${player.avatarSeed}&skinColor=f2d3b1,ffdfbf&hairColor=2c1b18,4a312c`}
+                    alt="avatar"
+                    style={{
+                        width: '50px', height: '50px', borderRadius: '12px',
+                        border: isTop3 ? `2px solid ${rankColor}` : '2px solid transparent',
+                        background: 'rgba(255,255,255,0.5)'
+                    }}
+                />
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <span style={{ fontSize: '1.2rem', fontWeight: 700, color: '#2d3436' }}>{player.name}</span>
+                    <div style={{ height: '4px', width: '100%', minWidth: '100px', maxWidth: '200px', background: 'rgba(0,0,0,0.05)', borderRadius: '4px', marginTop: '4px', overflow: 'hidden' }}>
+                        <div style={{ height: '100%', width: `${Math.min(totalScore, 100)}%`, background: rankColor, borderRadius: '4px' }}></div>
+                    </div>
                 </div>
             </div>
 
@@ -51,7 +62,7 @@ const RankRow = ({ player, rank, totalScore }) => {
     );
 };
 
-export function Leaderboard({ players, games, onReset }) {
+export function Leaderboard({ players, games, onReset, onShowPodium }) {
     const calculateTotalScore = (player) => {
         return Object.values(player.scores).reduce((acc, curr) => {
             return acc + (Number(curr) || 0);
@@ -87,8 +98,22 @@ export function Leaderboard({ players, games, onReset }) {
                 )}
             </div>
 
-            {/* Footer Reset Action */}
-            <div style={{ marginTop: '2rem', paddingTop: '1rem', borderTop: '1px solid rgba(0,0,0,0.05)', textAlign: 'center' }}>
+            {/* Footer Actions */}
+            <div style={{ marginTop: '2rem', paddingTop: '1rem', borderTop: '1px solid rgba(0,0,0,0.05)', textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '1rem', alignItems: 'center' }}>
+
+                <button
+                    onClick={onShowPodium}
+                    className="glass-btn"
+                    style={{
+                        background: 'linear-gradient(135deg, #f1c40f, #f39c12)',
+                        color: 'white', border: 'none',
+                        fontSize: '1.2rem', padding: '1rem 2.5rem',
+                        boxShadow: '0 10px 20px rgba(243, 156, 18, 0.4)'
+                    }}
+                >
+                    🏆 Start Victory Ceremony
+                </button>
+
                 <button
                     onClick={onReset}
                     className="glass-btn-ghost"
