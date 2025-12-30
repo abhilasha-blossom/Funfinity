@@ -59,7 +59,7 @@ export const usePartyData = () => {
                 // Merge saved state (active status) with fresh content (rules, briefs)
                 const mergedGames = INITIAL_GAMES.map(initGame => {
                     const savedGame = parsed.games.find(g => g.id === initGame.id);
-                    return savedGame ? { ...initGame, active: savedGame.active } : initGame;
+                    return savedGame ? { ...initGame, active: savedGame.active, completed: savedGame.completed || false } : { ...initGame, completed: false };
                 });
 
                 // Also retain any custom games the user added
@@ -145,6 +145,13 @@ export const usePartyData = () => {
         ]);
     };
 
+    const updateGame = (gameId, updates) => {
+        setGames(prev => prev.map(g =>
+            g.id === gameId ? { ...g, ...updates } : g
+        ));
+    };
+
+
     const resetAllData = () => {
         localStorage.removeItem(STORAGE_KEY);
         // Force reload to clear all state and re-mount
@@ -155,9 +162,16 @@ export const usePartyData = () => {
         setPlayers(prev => prev.map(p => ({ ...p, scores: {} })));
     };
 
+    const toggleGameComplete = (gameId) => {
+        setGames(prev => prev.map(g =>
+            g.id === gameId ? { ...g, completed: !g.completed } : g
+        ));
+    };
+
     return {
         players, games, addPlayer, removePlayer, updatePlayerAvatar,
         updateScore, toggleGameActive, addCustomGame, deleteGame,
+        toggleGameComplete, updateGame,
         resetAllData, resetScores,
         isLoaded
     };

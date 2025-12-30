@@ -9,6 +9,8 @@ import { Podium } from './components/Podium';
 
 // GameZone Card with 3D Sticker Icon
 const GameZoneCard = ({ game, onClick, onRemove }) => {
+  const isCompleted = game.completed;
+
   return (
     <div
       className="glass-card"
@@ -16,11 +18,16 @@ const GameZoneCard = ({ game, onClick, onRemove }) => {
       style={{
         display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
         minHeight: '280px', textAlign: 'center', cursor: 'pointer',
-        background: 'rgba(255, 255, 255, 0.45)',
-        position: 'relative'
+        background: isCompleted
+          ? 'linear-gradient(135deg, rgba(46, 204, 113, 0.2), rgba(39, 174, 96, 0.1), white)'
+          : 'rgba(255, 255, 255, 0.45)', // Changed color logic
+        position: 'relative',
+        border: isCompleted ? '2px solid #2ecc71' : '1px solid white',
+        boxShadow: isCompleted ? '0 10px 30px rgba(46, 204, 113, 0.3)' : '0 8px 32px 0 rgba(31, 38, 135, 0.07)',
+        transition: 'all 0.3s ease'
       }}
     >
-      {/* Remove Button (Cute Cross) */}
+      {/* Remove Button */}
       <button
         onClick={(e) => {
           e.stopPropagation();
@@ -33,20 +40,24 @@ const GameZoneCard = ({ game, onClick, onRemove }) => {
           border: '1px solid rgba(255, 118, 117, 0.4)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           fontSize: '1rem', cursor: 'pointer', zIndex: 10,
-          transition: 'all 0.2s'
         }}
         title="Remove Game"
       >
         ✕
       </button>
 
-      {/* Tech Grid Overlay */}
-      <div style={{
-        position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
-        backgroundImage: 'linear-gradient(rgba(108, 92, 231, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(108, 92, 231, 0.03) 1px, transparent 1px)',
-        backgroundSize: '20px 20px', zIndex: 0
-      }} />
+      {/* Glowing Tick Overlay for Completed Games */}
+      {isCompleted && (
+        <div style={{
+          position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
+          fontSize: '10rem', color: '#2ecc71', opacity: 0.1, zIndex: 0, pointerEvents: 'none',
+          filter: 'drop-shadow(0 0 20px #2ecc71)'
+        }}>
+          ✓
+        </div>
+      )}
 
+      {/* Main Content */}
       <div className="icon-3d" style={{ marginBottom: '2rem', zIndex: 1 }}>
         {game.icon}
       </div>
@@ -55,14 +66,25 @@ const GameZoneCard = ({ game, onClick, onRemove }) => {
         {game.name}
       </h3>
 
-      <div style={{
-        color: '#6c5ce7', fontSize: '0.9rem', fontWeight: 800, letterSpacing: '0.1em',
-        textTransform: 'uppercase', background: 'white', padding: '8px 20px', borderRadius: '50px',
-        zIndex: 1, boxShadow: '0 4px 15px rgba(108, 92, 231, 0.15)',
-        transition: 'all 0.3s ease'
-      }}>
-        START MISSION
-      </div>
+      {isCompleted ? (
+        <div style={{
+          color: 'white', fontSize: '0.9rem', fontWeight: 800, letterSpacing: '0.1em',
+          textTransform: 'uppercase', background: '#2ecc71', padding: '8px 24px', borderRadius: '50px',
+          zIndex: 1, boxShadow: '0 4px 15px rgba(46, 204, 113, 0.3)',
+          transition: 'all 0.3s ease'
+        }}>
+          COMPLETED
+        </div>
+      ) : (
+        <div style={{
+          color: '#6c5ce7', fontSize: '0.9rem', fontWeight: 800, letterSpacing: '0.1em',
+          textTransform: 'uppercase', background: 'white', padding: '8px 20px', borderRadius: '50px',
+          zIndex: 1, boxShadow: '0 4px 15px rgba(108, 92, 231, 0.15)',
+          transition: 'all 0.3s ease'
+        }}>
+          START MISSION
+        </div>
+      )}
     </div>
   );
 };
@@ -164,7 +186,7 @@ const CuteAlert = ({ message, type, onConfirm, onCancel }) => {
 };
 
 function App() {
-  const { players, games, addPlayer, removePlayer, updatePlayerAvatar, updateScore, toggleGameActive, addCustomGame, deleteGame, resetAllData, resetScores, isLoaded } = usePartyData();
+  const { players, games, addPlayer, removePlayer, updatePlayerAvatar, updateScore, toggleGameActive, toggleGameComplete, updateGame, addCustomGame, deleteGame, resetAllData, resetScores, isLoaded } = usePartyData();
   const [view, setView] = useState('LANDING');
   const [selectedGameId, setSelectedGameId] = useState(null);
   const [alertConfig, setAlertConfig] = useState(null); // { message, type, onConfirm }
@@ -279,6 +301,8 @@ function App() {
             game={getActiveGame()}
             players={players}
             updateScore={updateScore}
+            toggleGameComplete={toggleGameComplete}
+            updateGame={updateGame}
             onBack={() => setView('HOME')}
           />
         )}
