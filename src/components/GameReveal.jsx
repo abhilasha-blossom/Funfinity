@@ -307,13 +307,23 @@ export function GameReveal({ game, players, updateScore, onBack }) {
     const handleDraftComplete = (teamsArray) => {
         setGeneratedTeams(teamsArray);
         setTeamView(true);
-        setStage('GAME');
+        setStage('VERSUS');
     };
+
+    // Individual Mode State
+    const [queue, setQueue] = useState([]);
+    const [activePlayer, setActivePlayer] = useState(null);
+    const [finishedPlayers, setFinishedPlayers] = useState([]);
 
     // Mode Select Logic
     const selectMode = (mode) => {
         if (mode === 'SOLO') {
-            setTeamView(false); // No teams needed
+            setTeamView(false);
+            // Initialize Queue
+            const shuffled = [...players].sort(() => 0.5 - Math.random());
+            setQueue(shuffled.slice(1)); // All except first
+            setActivePlayer(shuffled[0]); // First player
+            setFinishedPlayers([]);
             setStage('GAME');
         } else if (mode === '1V1') {
             // Instant 1v1 Logic
@@ -325,15 +335,194 @@ export function GameReveal({ game, players, updateScore, onBack }) {
             setGeneratedTeams(duelTeams);
             setTeamScores({}); // Reset scores
             setTeamView(true);
-            setStage('GAME');
+            setStage('VERSUS');
         } else {
             setTeamView(true);
             setStage('DRAFT');
         }
     };
 
+    const handleNextPlayer = () => {
+        if (!activePlayer) return;
+
+        // Auto Save is handled by state existing in localScores, but we strictly ensure it's "committed" to memory visually
+        setFinishedPlayers(prev => [...prev, activePlayer]);
+
+        if (queue.length > 0) {
+            setActivePlayer(queue[0]);
+            setQueue(prev => prev.slice(1));
+        } else {
+            setActivePlayer(null); // Game Over
+        }
+    };
+
+    // Helper to start scoring from Versus
+    const startScoring = () => {
+        setStage('GAME');
+    };
+
     return (
         <>
+            {/* STAGE: VERSUS REVEAL */}
+            {stage === 'VERSUS' && (
+                <div style={{
+                    position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
+                    background: 'linear-gradient(135deg, #2d3436, #000000)', zIndex: 2000,
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                    fontFamily: "'Outfit', sans-serif"
+                }}>
+                    <div style={{
+                        position: 'absolute', inset: 0,
+                        backgroundImage: 'radial-gradient(circle at center, rgba(108, 92, 231, 0.2) 0%, transparent 70%)',
+                        zIndex: 0
+                    }}></div>
+
+                    <h1 style={{
+                        color: 'white', fontSize: '4rem', marginBottom: '2rem', zIndex: 10,
+                        textTransform: 'uppercase', letterSpacing: '10px', fontWeight: 900,
+                        textShadow: '0 0 20px rgba(255,255,255,0.5)'
+                    }}>
+                        {generatedTeams.length === 2 && generatedTeams[0].length === 1 ? 'DUEL' : 'TEAM BATTLE'}
+                    </h1>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4rem', zIndex: 10, flexWrap: 'wrap', justifyContent: 'center' }}>
+                        {generatedTeams.map((team, idx) => (
+                            <React.Fragment key={idx}>
+                                {idx > 0 && (
+                                    <div style={{ fontSize: '5rem', color: '#ff7675', fontWeight: 900, fontStyle: 'italic', textShadow: '0 0 30px #ff7675' }}>
+                                        VS
+                                    </div>
+                                )}
+                                <div style={{
+                                    display: 'flex', flexDirection: 'column', alignItems: 'center',
+                                    animation: idx === 0 ? 'slideRight 1s ease' : 'slideLeft 1s ease'
+                                }}>
+                                    {/* Avatar/Icon - Show big avatar for 1v1 */}
+                                    {team.length === 1 && (
+                                        <div style={{
+                                            width: '200px', height: '200px', borderRadius: '50%',
+                                            border: `8px solid ${COLORS[idx % COLORS.length]}`,
+                                            overflow: 'hidden', marginBottom: '1rem', background: '#ecf0f1',
+                                            boxShadow: `0 0 50px ${COLORS[idx % COLORS.length]}44`
+                                        }}>
+                                            <img
+                                                src={`https://api.dicebear.com/9.x/adventurer/svg?seed=${team[0].avatarSeed}&skinColor=f2d3b1,ffdfbf&hairColor=2c1b18,4a312c`}
+                                                alt={team[0].name}
+                                                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                            />
+                                        </div>
+                                    )}
+
+                                    <h2 style={{
+                                        fontSize: '3rem', color: COLORS[idx % COLORS.length],
+                                        textTransform: 'uppercase', fontWeight: 900, marginBottom: '0.5rem'
+                                    }}>
+                                        {team.length === 1 ? team[0].name : `TEAM ${idx + 1}`}
+                                    </h2>
+                                    {team.length > 1 && (
+                                        <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: '1.2rem', maxWidth: '300px', textAlign: 'center' }}>
+                                            {team.map(p => p.name).join(' • ')}
+                                        </div>
+                                    )}
+                                </div>
+                            </React.Fragment>
+                        ))}
+                    </div>
+
+                    <button
+                        onClick={startScoring}
+                        className="glass-btn"
+                        style={{
+                            marginTop: '4rem', padding: '1.5rem 4rem', fontSize: '2rem', zIndex: 10,
+                            background: 'white', color: 'black', fontWeight: 900, border: 'none',
+                            boxShadow: '0 0 30px rgba(255,255,255,0.5)'
+                        }}
+                    >
+                        START MATCH ⚔️
+                    </button>
+
+                    <style>{`
+                        @keyframes slideRight { from { transform: translateX(-100px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+                        @keyframes slideLeft { from { transform: translateX(100px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+                    `}</style>
+                </div>
+            )}
+
+            {/* STAGE: FULL SCREEN SOLO GAMING */}
+            {stage === 'GAME' && !teamView && activePlayer && (
+                <div style={{
+                    position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
+                    background: 'linear-gradient(135deg, #1e272e, #000000)', zIndex: 2000,
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                    fontFamily: "'Outfit', sans-serif"
+                }}>
+                    <button
+                        onClick={onBack}
+                        style={{
+                            position: 'absolute', top: '2rem', right: '2rem',
+                            background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '50%',
+                            width: '50px', height: '50px', cursor: 'pointer', fontSize: '1.5rem', color: 'white',
+                            zIndex: 100
+                        }}
+                    >
+                        ✕
+                    </button>
+
+                    <div style={{ fontWeight: 900, color: 'rgba(255,255,255,0.3)', letterSpacing: '5px', marginBottom: '2rem', fontSize: '1.5rem' }}>
+                        PLAYER {finishedPlayers.length + 1} / {players.length}
+                    </div>
+
+                    {/* BIG AVATAR */}
+                    <div style={{
+                        width: '250px', height: '250px', borderRadius: '50%',
+                        border: '10px solid #6c5ce7',
+                        overflow: 'hidden', marginBottom: '2rem', background: '#ecf0f1',
+                        boxShadow: '0 0 60px rgba(108, 92, 231, 0.4)',
+                        animation: 'pop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
+                    }}>
+                        <img
+                            src={`https://api.dicebear.com/9.x/adventurer/svg?seed=${activePlayer.avatarSeed}&skinColor=f2d3b1,ffdfbf&hairColor=2c1b18,4a312c`}
+                            alt={activePlayer.name}
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        />
+                    </div>
+
+                    <h1 style={{ color: 'white', fontSize: '5rem', marginBottom: '3rem', fontWeight: 900 }}>{activePlayer.name}</h1>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2rem' }}>
+                        <input
+                            type="number"
+                            autoFocus
+                            className="glass-input"
+                            style={{
+                                width: '300px', height: '120px', fontSize: '5rem',
+                                textAlign: 'center', borderRadius: '30px',
+                                border: '4px solid #6c5ce7', color: 'white', background: 'rgba(255,255,255,0.1)',
+                                fontWeight: 700
+                            }}
+                            placeholder="0"
+                            value={localScores[activePlayer.id] || ''}
+                            onChange={(e) => handleScoreChange(activePlayer.id, e.target.value)}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter') handleNextPlayer();
+                            }}
+                        />
+                        <div style={{ fontSize: '1.2rem', color: '#b2bec3' }}>Enter Points & Press Enter</div>
+                    </div>
+
+                    <button
+                        className="glass-btn"
+                        onClick={handleNextPlayer}
+                        style={{
+                            marginTop: '4rem', padding: '1.5rem 5rem', fontSize: '2rem',
+                            background: 'white', color: 'black', fontWeight: 900
+                        }}
+                    >
+                        NEXT PLAYER ➡
+                    </button>
+                </div>
+            )}
+
             {/* STAGE 1: MODE SELECTION */}
             {stage === 'MODE_SELECT' && (
                 <div style={{
@@ -629,20 +818,47 @@ export function GameReveal({ game, players, updateScore, onBack }) {
                                                     )}
                                                 </>
                                             ) : (
-                                                // INDIVIDUAL SCORING INPUTS
-                                                players.map(player => (
-                                                    <div key={player.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                                        <span style={{ fontWeight: 600, fontSize: '1.1rem' }}>{player.name}</span>
-                                                        <input
-                                                            type="number"
-                                                            className="glass-input"
-                                                            style={{ width: '80px', padding: '0.8rem', textAlign: 'center', background: 'white' }}
-                                                            placeholder="-"
-                                                            value={localScores[player.id]}
-                                                            onChange={(e) => handleScoreChange(player.id, e.target.value)}
-                                                        />
+                                                // INDIVIDUAL SCORING: QUEUE SYSTEM (FULL SCREEN HANDLED ABOVE)
+                                                // If we are here in the modal, it means activePlayer is null (Game Over) or teamView is false.
+                                                // So we just show the summary if finishedPlayers exist, or fallback.
+
+                                                !activePlayer && finishedPlayers.length > 0 ? (
+                                                    // FINISHED ALL PLAYERS - SUMMARY
+                                                    <div style={{ textAlign: 'center', padding: '1rem' }}>
+                                                        <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🏁</div>
+                                                        <h2 style={{ marginBottom: '2rem' }}>All Players Finished!</h2>
+                                                        <div style={{ maxHeight: '300px', overflowY: 'auto', marginBottom: '2rem', border: '1px solid #eee', borderRadius: '12px' }}>
+                                                            {[...players].sort((a, b) => (Number(localScores[b.id]) || 0) - (Number(localScores[a.id]) || 0)).map((p, i) => (
+                                                                <div key={p.id} style={{
+                                                                    display: 'flex', justifyContent: 'space-between', padding: '1rem',
+                                                                    background: i % 2 === 0 ? 'white' : '#f9f9f9',
+                                                                    borderBottom: '1px solid #eee'
+                                                                }}>
+                                                                    <span style={{ fontWeight: 600 }}>#{i + 1} {p.name}</span>
+                                                                    <span style={{ fontWeight: 700, color: '#6c5ce7' }}>{localScores[p.id] || 0} pts</span>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                        <button className="glass-btn" onClick={() => handleSave(false)} style={{ width: '100%', borderRadius: '20px' }}>
+                                                            SAVE & COMPLETE GAME
+                                                        </button>
                                                     </div>
-                                                ))
+                                                ) : (
+                                                    // Fallback for regular individual scoring if queue somehow bypassed (legacy safety)
+                                                    players.map(player => (
+                                                        <div key={player.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                                            <span style={{ fontWeight: 600, fontSize: '1.1rem' }}>{player.name}</span>
+                                                            <input
+                                                                type="number"
+                                                                className="glass-input"
+                                                                style={{ width: '80px', padding: '0.8rem', textAlign: 'center', background: 'white' }}
+                                                                placeholder="-"
+                                                                value={localScores[player.id]}
+                                                                onChange={(e) => handleScoreChange(player.id, e.target.value)}
+                                                            />
+                                                        </div>
+                                                    ))
+                                                )
                                             )}
                                         </div>
 
