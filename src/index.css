@@ -1,0 +1,203 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700;900&display=swap');
+
+:root {
+  /* Vibrant Glass Palette */
+  --glass-surface: rgba(255, 255, 255, 0.65);
+  --glass-border: rgba(255, 255, 255, 0.8);
+
+  --text-main: #2d3436;
+  --text-muted: #636e72;
+  --accent-color: #6c5ce7;
+
+  --font-premium: 'Outfit', sans-serif;
+
+  --shadow-glass: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+  --shadow-hover: 0 15px 40px 0 rgba(31, 38, 135, 0.25);
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-premium);
+  background-color: #f7f1e3;
+  color: var(--text-main);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+
+  /* Animated Mesh Background */
+  background:
+    radial-gradient(circle at 15% 50%, rgba(255, 159, 67, 0.4), transparent 25%),
+    radial-gradient(circle at 85% 30%, rgba(46, 134, 222, 0.4), transparent 25%),
+    radial-gradient(circle at 50% 80%, rgba(238, 82, 83, 0.4), transparent 25%),
+    linear-gradient(120deg, #fdfbfb 0%, #ebedee 100%);
+  background-size: 200% 200%;
+  animation: gradient-move 15s ease infinite;
+}
+
+@keyframes gradient-move {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* 3D Sticker Icon Effect */
+.icon-3d {
+  display: inline-block;
+  font-size: 5rem;
+  filter: drop-shadow(0px 10px 0px rgba(0, 0, 0, 0.15)) drop-shadow(0px 20px 20px rgba(0, 0, 0, 0.1));
+  transform: rotate(-5deg) perspective(500px) translateZ(20px);
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  -webkit-text-stroke: 2px white;
+  /* Fake sticker border if supported */
+}
+
+/* Glass Card */
+.glass-card {
+  background: var(--glass-surface);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  border-radius: 24px;
+  box-shadow: var(--shadow-glass);
+  padding: 2rem;
+  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.glass-card:hover {
+  transform: translateY(-8px);
+  box-shadow: var(--shadow-hover);
+  background: rgba(255, 255, 255, 0.85);
+}
+
+.glass-card:hover .icon-3d {
+  transform: rotate(5deg) scale(1.1) translateZ(40px);
+}
+
+/* Glass Toggles (Perfect iOS Style) */
+.glass-toggle {
+  position: relative;
+  display: inline-block;
+  width: 52px;
+  height: 32px;
+  flex-shrink: 0;
+}
+
+.glass-toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #dfe6e9;
+  /* Solid Grey Off State */
+  transition: .3s cubic-bezier(0.4, 0.0, 0.2, 1);
+  border-radius: 32px;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  /* Subtle glass border */
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+  /* Inner depth */
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 24px;
+  width: 24px;
+  left: 2px;
+  bottom: 2px;
+  background-color: white;
+  transition: .3s cubic-bezier(0.4, 0.0, 0.2, 1);
+  border-radius: 50%;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+input:checked+.slider {
+  background-color: #6c5ce7;
+  /* Brand Purple */
+  border-color: #6c5ce7;
+  box-shadow: 0 4px 15px rgba(108, 92, 231, 0.4);
+}
+
+input:checked+.slider:before {
+  transform: translateX(20px);
+}
+
+/* Button & Input Styles */
+.glass-btn {
+  background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+  color: white;
+  border: none;
+  border-radius: 50px;
+  padding: 1rem 3rem;
+  font-family: var(--font-premium);
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(108, 92, 231, 0.3);
+  transition: 0.3s;
+}
+
+.glass-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(108, 92, 231, 0.5);
+}
+
+.glass-input {
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid white;
+  border-radius: 12px;
+  padding: 0.8rem;
+  width: 100%;
+  font-family: var(--font-premium);
+  font-size: 1rem;
+  outline: none;
+  transition: 0.3s;
+}
+
+.glass-input:focus {
+  background: white;
+  border-color: #6c5ce7;
+  box-shadow: 0 0 0 4px rgba(108, 92, 231, 0.1);
+}
+
+/* Utils */
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  font-weight: 800;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
