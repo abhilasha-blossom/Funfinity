@@ -1,22 +1,31 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 
-// Dramatic Team Draft Component
+// Multi-Team "Battle Royale" Draft Component
 const TeamDraft = ({ players, onComplete }) => {
-    const [redTeam, setRedTeam] = useState([]);
-    const [blueTeam, setBlueTeam] = useState([]);
+    const [stage, setStage] = useState('SETUP'); // SETUP, READY, DRAFTING, DONE
+    const [teamSize, setTeamSize] = useState(2);
+    const [teams, setTeams] = useState([]); // Array of arrays
     const [unassigned, setUnassigned] = useState([]);
-    const [currentName, setCurrentName] = useState("READY?");
-    const [drafting, setDrafting] = useState(false);
-    const [turn, setTurn] = useState('RED'); // RED or BLUE
+    const [currentName, setCurrentName] = useState("PRESS START");
+    const [currentTeamIdx, setCurrentTeamIdx] = useState(0);
     const [animationState, setAnimationState] = useState('IDLE'); // IDLE, SPINNING, REVEALED
 
-    // Prepare the draft
+    const COLORS = ['#ff7675', '#74b9ff', '#55efc4', '#ffeaa7', '#a29bfe', '#fd79a8', '#00b894', '#fdcb6e'];
+
+    // Initialize Unassigned
     useEffect(() => {
         setUnassigned([...players].sort(() => 0.5 - Math.random()));
     }, [players]);
 
+    const handleSetupConfirm = () => {
+        const numTeams = Math.ceil(players.length / teamSize);
+        // Initialize empty teams
+        setTeams(Array(numTeams).fill([]));
+        setStage('READY');
+    };
+
     const startDraft = () => {
-        setDrafting(true);
+        setStage('DRAFTING');
         processNextPick();
     };
 
@@ -27,134 +36,186 @@ const TeamDraft = ({ players, onComplete }) => {
     // Spinning Effect
     useEffect(() => {
         let interval;
-        if (animationState === 'SPINNING' && unassigned.length > 0) {
+        if (animationState === 'SPINNING') {
             let spinCount = 0;
             interval = setInterval(() => {
                 const randomIdx = Math.floor(Math.random() * unassigned.length);
-                setCurrentName(unassigned[randomIdx].name);
+                setCurrentName(unassigned[randomIdx]?.name || "???");
                 spinCount++;
 
-                // Stop spinning after 20 frames (approx 1s)
-                if (spinCount > 20) {
+                if (spinCount > 15) {
                     clearInterval(interval);
                     finalizePick();
                 }
             }, 50);
-        } else if (animationState === 'SPINNING' && unassigned.length === 0) {
-            setDrafting(false);
-            setAnimationState('DONE');
-            onComplete({ teamA: redTeam, teamB: blueTeam });
         }
         return () => clearInterval(interval);
-    }, [animationState, unassigned]);
+    }, [animationState]);
 
     const finalizePick = () => {
-        // Pick the first one from the shuffled unassigned list
         const pickedPlayer = unassigned[0];
         setCurrentName(pickedPlayer.name);
         setAnimationState('REVEALED');
 
-        // Wait a beat to show the winner, then move them
         setTimeout(() => {
-            if (turn === 'RED') {
-                setRedTeam(prev => [...prev, pickedPlayer]);
-                setTurn('BLUE');
-            } else {
-                setBlueTeam(prev => [...prev, pickedPlayer]);
-                setTurn('RED');
-            }
-            setUnassigned(prev => prev.slice(1)); // Remove from pool
+            // Assign to current team
+            setTeams(prev => {
+                const newTeams = [...prev];
+                newTeams[currentTeamIdx] = [...newTeams[currentTeamIdx], pickedPlayer];
+                return newTeams;
+            });
 
-            // Loop if players remain
-            if (unassigned.length > 1) { // Check > 1 because we just removed one (effectively)
+            // Prepare next state
+            setUnassigned(prev => prev.slice(1));
+
+            // Move to next team (Round Robin)
+            const nextTeamIdx = (currentTeamIdx + 1) % teams.length;
+            setCurrentTeamIdx(nextTeamIdx);
+
+            if (unassigned.length > 1) {
                 processNextPick();
             } else {
-                setAnimationState('DONE');
-                // One frame delay to let UI render final state
-                setTimeout(() => onComplete({
-                    teamA: turn === 'RED' ? [...redTeam, pickedPlayer] : redTeam,
-                    teamB: turn === 'BLUE' ? [...blueTeam, pickedPlayer] : blueTeam
-                }), 1000);
+                setStage('DONE');
+                // Wait for final render then complete
+                setTimeout(() => {
+                    // Pass the final teams array
+                    // We need to pass it in a way the parent expects, or update parent to handle array
+                    // For now, let's pass the array and let parent handle it
+                    setTeams(prev => {
+                        onComplete(prev);
+                        return prev;
+                    });
+                }, 1500);
             }
         }, 800);
     };
 
-    if (animationState === 'DONE') return null;
+    if (stage === 'DONE') return null;
+
+    const currentTeamColor = COLORS[currentTeamIdx % COLORS.length];
 
     return (
         <div style={{
             position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
-            background: 'rgba(0,0,0,0.9)', zIndex: 1000,
-            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-            color: 'white', fontFamily: "'Outfit', sans-serif"
+            background: '#0a0a0a', zIndex: 1000,
+            overflow: 'hidden',
+            fontFamily: "'Outfit', sans-serif",
+            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center'
         }}>
-            {/* Split Backgrounds */}
-            <div style={{ position: 'absolute', top: 0, left: 0, width: '50%', height: '100%', background: 'linear-gradient(135deg, #d63031 0%, #ff7675 100%)', opacity: 0.2 }}></div>
-            <div style={{ position: 'absolute', top: 0, right: 0, width: '50%', height: '100%', background: 'linear-gradient(135deg, #0984e3 0%, #74b9ff 100%)', opacity: 0.2 }}></div>
+            {/* Background Grid */}
+            <div style={{
+                position: 'absolute', inset: 0,
+                backgroundImage: 'linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px)',
+                backgroundSize: '40px 40px',
+                zIndex: 0
+            }}></div>
 
-            {/* Teams Display */}
-            <div style={{ position: 'absolute', top: '10%', padding: '0 5%', width: '100%', display: 'flex', justifyContent: 'space-between', zIndex: 10 }}>
-                <div style={{ width: '40%' }}>
-                    <h2 style={{ color: '#ff7675', fontSize: '2rem', borderBottom: '2px solid #ff7675', paddingBottom: '0.5rem' }}>TEAM RED</h2>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginTop: '1rem' }}>
-                        {redTeam.map(p => (
-                            <span key={p.id} style={{ background: '#d63031', padding: '0.5rem 1rem', borderRadius: '10px', fontWeight: 700, animation: 'pop 0.3s' }}>{p.name}</span>
-                        ))}
-                    </div>
-                </div>
-                <div style={{ width: '40%', textAlign: 'right' }}>
-                    <h2 style={{ color: '#74b9ff', fontSize: '2rem', borderBottom: '2px solid #74b9ff', paddingBottom: '0.5rem' }}>TEAM BLUE</h2>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginTop: '1rem', justifyContent: 'flex-end' }}>
-                        {blueTeam.map(p => (
-                            <span key={p.id} style={{ background: '#0984e3', padding: '0.5rem 1rem', borderRadius: '10px', fontWeight: 700, animation: 'pop 0.3s' }}>{p.name}</span>
-                        ))}
-                    </div>
-                </div>
-            </div>
+            {stage === 'SETUP' && (
+                <div style={{ zIndex: 100, background: 'rgba(25, 25, 25, 0.9)', padding: '3rem', borderRadius: '24px', border: '1px solid #636e72', textAlign: 'center', minWidth: '400px' }}>
+                    <h2 style={{ color: 'white', marginBottom: '2rem', fontSize: '2rem' }}>DRAFT SETUP</h2>
 
-            {/* Central Spinner */}
-            <div style={{ zIndex: 20, textAlign: 'center' }}>
-                {!drafting ? (
+                    <div style={{ marginBottom: '2rem' }}>
+                        <label style={{ color: '#b2bec3', display: 'block', marginBottom: '1rem', fontSize: '1.2rem' }}>TEAMS CONFIGURATION</label>
+                        <div style={{ fontSize: '3rem', color: '#ff7675', fontWeight: 900, marginBottom: '1rem' }}>
+                            {teamSize} <span style={{ fontSize: '1.5rem', color: 'white' }}>Players per Team</span>
+                        </div>
+                        <input
+                            type="range" min="2" max={Math.floor(players.length / 2) || 2} value={teamSize}
+                            onChange={(e) => setTeamSize(Number(e.target.value))}
+                            style={{ width: '100%', accentColor: '#ff7675' }}
+                        />
+                        <div style={{ marginTop: '1rem', color: '#636e72' }}>
+                            Total Players: {players.length} → Will generate <strong style={{ color: 'white' }}>{Math.ceil(players.length / teamSize)} Teams</strong>
+                        </div>
+                    </div>
+
                     <button
-                        onClick={startDraft}
-                        style={{
-                            fontSize: '2rem', padding: '1.5rem 4rem', borderRadius: '50px',
-                            background: 'white', color: '#2d3436', border: 'none', fontWeight: 900,
-                            cursor: 'pointer', boxShadow: '0 0 50px rgba(255,255,255,0.5)',
-                            animation: 'pulse 1s infinite'
-                        }}
+                        onClick={handleSetupConfirm}
+                        className="glass-btn"
+                        style={{ fontSize: '1.2rem', padding: '1rem 3rem', width: '100%' }}
                     >
-                        START TEAM DRAFT
+                        CONFIRM & ENTER ARENA
                     </button>
-                ) : (
-                    <div style={{ transform: 'scale(1.5)' }}>
-                        <div style={{ fontSize: '1.5rem', color: '#b2bec3', letterSpacing: '5px', marginBottom: '1rem' }}>RECRUITING FOR</div>
-                        <div style={{
-                            fontSize: '3rem', fontWeight: 900,
-                            color: turn === 'RED' ? '#ff7675' : '#74b9ff',
-                            marginBottom: '2rem'
-                        }}>
-                            {turn} TEAM
-                        </div>
+                </div>
+            )}
 
-                        <div style={{
-                            fontSize: '5rem', fontWeight: 900,
-                            background: 'rgba(255,255,255,0.1)', padding: '2rem 4rem', borderRadius: '20px',
-                            border: `4px solid ${animationState === 'REVEALED' ? (turn === 'RED' ? '#ff7675' : '#74b9ff') : 'rgba(255,255,255,0.5)'}`,
-                            textShadow: '0 10px 30px rgba(0,0,0,0.5)',
-                            minWidth: '400px',
-                            transform: animationState === 'REVEALED' ? 'scale(1.1)' : 'scale(1)',
-                            transition: 'all 0.2s',
-                            color: 'white'
-                        }}>
-                            {currentName}
-                        </div>
+            {(stage === 'READY' || stage === 'DRAFTING') && (
+                <>
+                    {/* Teams HUD Grid */}
+                    <div style={{
+                        position: 'absolute', top: 0, left: 0, width: '100%', padding: '2rem',
+                        display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', gap: '2rem',
+                        zIndex: 10
+                    }}>
+                        {teams.map((team, idx) => (
+                            <div key={idx} style={{
+                                flex: '1 1 200px',
+                                background: idx === currentTeamIdx && stage === 'DRAFTING' ? `rgba(${parseInt(COLORS[idx % COLORS.length].slice(1, 3), 16)}, ${parseInt(COLORS[idx % COLORS.length].slice(3, 5), 16)}, ${parseInt(COLORS[idx % COLORS.length].slice(5, 7), 16)}, 0.1)` : 'rgba(255,255,255,0.05)',
+                                border: `2px solid ${COLORS[idx % COLORS.length]}`,
+                                borderRadius: '12px', padding: '1rem',
+                                transition: 'all 0.3s',
+                                transform: idx === currentTeamIdx && stage === 'DRAFTING' ? 'scale(1.05)' : 'scale(1)',
+                                boxShadow: idx === currentTeamIdx && stage === 'DRAFTING' ? `0 0 30px ${COLORS[idx % COLORS.length]}44` : 'none'
+                            }}>
+                                <h3 style={{ color: COLORS[idx % COLORS.length], margin: '0 0 1rem 0', fontSize: '1.2rem', textTransform: 'uppercase', letterSpacing: '2px' }}>TEAM {idx + 1}</h3>
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                                    {team.map((p, pIdx) => (
+                                        <span key={pIdx} style={{
+                                            background: 'rgba(255,255,255,0.1)', padding: '0.2rem 0.6rem', borderRadius: '4px', fontSize: '0.9rem', color: 'white',
+                                            animation: 'pop 0.3s'
+                                        }}>
+                                            {p.name}
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+                        ))}
                     </div>
-                )}
-            </div>
 
+                    {/* Central Spinner */}
+                    <div style={{ zIndex: 20, textAlign: 'center' }}>
+                        {stage === 'READY' ? (
+                            <button
+                                onClick={startDraft}
+                                style={{
+                                    fontSize: '2rem', padding: '1.5rem 5rem', borderRadius: '4px',
+                                    background: 'transparent', color: 'white',
+                                    border: '4px solid white', fontWeight: 900, letterSpacing: '2px',
+                                    cursor: 'pointer', boxShadow: '0 0 30px rgba(255,255,255,0.3)',
+                                    animation: 'pulse 1.5s infinite', textTransform: 'uppercase'
+                                }}
+                            >
+                                INITIATE DRAFT
+                            </button>
+                        ) : (
+                            <div style={{ transform: 'scale(1.2)' }}>
+                                <div style={{ fontSize: '1.5rem', color: '#b2bec3', letterSpacing: '5px', marginBottom: '1rem' }}>RECRUITING FOR</div>
+                                <div style={{
+                                    fontSize: '3rem', fontWeight: 900,
+                                    color: currentTeamColor,
+                                    marginBottom: '2rem', textShadow: `0 0 20px ${currentTeamColor}`
+                                }}>
+                                    TEAM {currentTeamIdx + 1}
+                                </div>
+
+                                <div style={{
+                                    fontSize: '4rem', fontWeight: 900, color: 'white',
+                                    padding: '2rem 4rem',
+                                    border: `4px solid ${currentTeamColor}`,
+                                    background: 'rgba(0,0,0,0.8)',
+                                    textShadow: animationState === 'REVEALED' ? `0 0 30px ${currentTeamColor}` : 'none',
+                                    transform: animationState === 'REVEALED' ? 'scale(1.1)' : 'scale(1)',
+                                    transition: 'all 0.1s', fontFamily: 'monospace'
+                                }}>
+                                    {currentName}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </>
+            )}
             <style>{`
-                @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+                @keyframes pulse { 0% { opacity: 0.8; transform: scale(0.98); } 50% { opacity: 1; transform: scale(1.02); } 100% { opacity: 0.8; transform: scale(0.98); } }
                 @keyframes pop { 0% { opacity: 0; transform: scale(0.5); } 80% { transform: scale(1.1); } 100% { opacity: 1; transform: scale(1); } }
             `}</style>
         </div>
@@ -164,8 +225,11 @@ const TeamDraft = ({ players, onComplete }) => {
 export function GameReveal({ game, players, updateScore, onBack }) {
     const [localScores, setLocalScores] = useState({});
     const [teamView, setTeamView] = useState(false);
-    const [teams, setTeams] = useState({ teamA: [], teamB: [] });
+    const [generatedTeams, setGeneratedTeams] = useState([]); // Now an array of arrays
     const [showDraft, setShowDraft] = useState(false);
+
+    // Constants
+    const COLORS = ['#ff7675', '#74b9ff', '#55efc4', '#ffeaa7', '#a29bfe', '#fd79a8', '#00b894', '#fdcb6e'];
 
     const isTeamGame = game.type === 'TEAM';
 
@@ -176,7 +240,6 @@ export function GameReveal({ game, players, updateScore, onBack }) {
         });
         setLocalScores(initial);
 
-        // Auto-open team view if it's a team game
         if (isTeamGame) {
             setTeamView(true);
         }
@@ -197,8 +260,8 @@ export function GameReveal({ game, players, updateScore, onBack }) {
         onBack();
     };
 
-    const handleDraftComplete = (generatedTeams) => {
-        setTeams(generatedTeams);
+    const handleDraftComplete = (teamsArray) => {
+        setGeneratedTeams(teamsArray);
         setShowDraft(false);
         setTeamView(true);
     };
@@ -262,32 +325,36 @@ export function GameReveal({ game, players, updateScore, onBack }) {
 
                         {/* Left Col: Rules & Teams */}
                         <div>
-                            {/* Team Generator */}
-                            <div style={{ marginBottom: '3rem' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                                    <h3 style={{ fontSize: '1.1rem', textTransform: 'uppercase', color: '#b2bec3', letterSpacing: '2px', fontWeight: 700 }}>TEAMS</h3>
-                                    <button className="glass-btn-ghost" onClick={() => setShowDraft(true)} style={{ fontSize: '0.8rem', padding: '0.5rem 1rem' }}>
-                                        {teams.teamA.length > 0 ? '🔄 Restart Draft' : '🎲 Start Team Draft'}
-                                    </button>
-                                </div>
+                            {/* Team Generator (Only for Team Games) */}
+                            {isTeamGame && (
+                                <div style={{ marginBottom: '3rem' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                                        <h3 style={{ fontSize: '1.1rem', textTransform: 'uppercase', color: '#b2bec3', letterSpacing: '2px', fontWeight: 700 }}>TEAMS</h3>
+                                        <button className="glass-btn-ghost" onClick={() => setShowDraft(true)} style={{ fontSize: '0.8rem', padding: '0.5rem 1rem' }}>
+                                            {generatedTeams.length > 0 ? '🔄 Restart Draft' : '🎲 Start Team Draft'}
+                                        </button>
+                                    </div>
 
-                                {teamView && teams.teamA.length > 0 ? (
-                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                                        <div style={{ background: 'rgba(255,118,117,0.1)', padding: '1rem', borderRadius: '16px', border: '1px solid rgba(255,118,117,0.3)' }}>
-                                            <h4 style={{ color: '#d63031', marginBottom: '0.5rem' }}>TEAM RED</h4>
-                                            {teams.teamA.map(p => <div key={p.id} style={{ fontSize: '1rem', fontWeight: 600 }}>• {p.name}</div>)}
+                                    {teamView && generatedTeams.length > 0 ? (
+                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                            {generatedTeams.map((team, idx) => (
+                                                <div key={idx} style={{
+                                                    background: `rgba(${parseInt(COLORS[idx % COLORS.length].slice(1, 3), 16)}, ${parseInt(COLORS[idx % COLORS.length].slice(3, 5), 16)}, ${parseInt(COLORS[idx % COLORS.length].slice(5, 7), 16)}, 0.1)`,
+                                                    padding: '1rem', borderRadius: '16px',
+                                                    border: `1px solid ${COLORS[idx % COLORS.length]}88`
+                                                }}>
+                                                    <h4 style={{ color: COLORS[idx % COLORS.length], marginBottom: '0.5rem', textTransform: 'uppercase' }}>TEAM {idx + 1}</h4>
+                                                    {team.map(p => <div key={p.id} style={{ fontSize: '1rem', fontWeight: 600 }}>• {p.name}</div>)}
+                                                </div>
+                                            ))}
                                         </div>
-                                        <div style={{ background: 'rgba(116,185,255,0.1)', padding: '1rem', borderRadius: '16px', border: '1px solid rgba(116,185,255,0.3)' }}>
-                                            <h4 style={{ color: '#0984e3', marginBottom: '0.5rem' }}>TEAM BLUE</h4>
-                                            {teams.teamB.map(p => <div key={p.id} style={{ fontSize: '1rem', fontWeight: 600 }}>• {p.name}</div>)}
+                                    ) : (
+                                        <div style={{ padding: '2rem', textAlign: 'center', background: 'rgba(0,0,0,0.02)', borderRadius: '16px', fontStyle: 'italic', color: '#b2bec3' }}>
+                                            Click 'Start Team Draft' to configure and assign teams.
                                         </div>
-                                    </div>
-                                ) : (
-                                    <div style={{ padding: '2rem', textAlign: 'center', background: 'rgba(0,0,0,0.02)', borderRadius: '16px', fontStyle: 'italic', color: '#b2bec3' }}>
-                                        Click 'Start Team Draft' to assign players to Red vs Blue.
-                                    </div>
-                                )}
-                            </div>
+                                    )}
+                                </div>
+                            )}
 
                             <h3 style={{ fontSize: '1.1rem', textTransform: 'uppercase', color: '#b2bec3', letterSpacing: '2px', marginBottom: '1.5rem', fontWeight: 700 }}>Instructions</h3>
 
