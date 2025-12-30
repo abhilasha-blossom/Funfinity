@@ -89,16 +89,116 @@ const AddGameCard = ({ onClick }) => {
   );
 };
 
+// Cute Alert Modal
+const CuteAlert = ({ message, type, onConfirm, onCancel }) => {
+  return (
+    <div style={{
+      position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
+      background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(5px)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000,
+      animation: 'fadeIn 0.2s'
+    }}>
+      <div className="glass-card" style={{
+        background: 'white', maxWidth: '400px', textAlign: 'center',
+        padding: '2rem', borderRadius: '24px', animation: 'bounceUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
+      }}>
+        <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>
+          {type === 'delete' ? '🗑️' : '👻'}
+        </div>
+        <h3 style={{ fontSize: '1.5rem', marginBottom: '1rem', color: '#2d3436' }}>
+          {type === 'delete' ? 'Delete Forever?' : 'Hide This Game?'}
+        </h3>
+        <p style={{ color: '#636e72', marginBottom: '2rem', fontSize: '1.1rem' }}>
+          {message}
+        </p>
+        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+          <button
+            onClick={onCancel}
+            className="cute-btn cancel"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            className={`cute-btn confirm ${type}`}
+          >
+            {type === 'delete' ? 'Yes, Delete!' : 'Hide it!'}
+          </button>
+        </div>
+      </div>
+      <style>{`
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes bounceUp { from { transform: scale(0.8) translateY(20px); opacity: 0; } to { transform: scale(1) translateY(0); opacity: 1; } }
+        
+        .cute-btn {
+          padding: 0.8rem 2rem;
+          border-radius: 50px;
+          border: none;
+          font-weight: 800;
+          font-size: 1rem;
+          cursor: pointer;
+          transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .cute-btn:hover { transform: scale(1.1) rotate(-2deg); }
+        .cute-btn:active { transform: scale(0.95); }
+
+        .cute-btn.cancel {
+          background: #dfe6e9;
+          color: #636e72;
+        }
+        .cute-btn.confirm.delete {
+          background: linear-gradient(135deg, #ff7675, #fab1a0);
+          color: white;
+          box-shadow: 0 4px 15px rgba(255, 118, 117, 0.4);
+        }
+        .cute-btn.confirm.hide {
+          background: linear-gradient(135deg, #74b9ff, #a29bfe);
+          color: white;
+          box-shadow: 0 4px 15px rgba(116, 185, 255, 0.4);
+        }
+      `}</style>
+    </div >
+  );
+};
+
 function App() {
-  const { players, games, addPlayer, removePlayer, updateScore, toggleGameActive, addCustomGame, isLoaded } = usePartyData();
+  const { players, games, addPlayer, removePlayer, updateScore, toggleGameActive, addCustomGame, deleteGame, isLoaded } = usePartyData();
   const [view, setView] = useState('LANDING');
   const [selectedGameId, setSelectedGameId] = useState(null);
+  const [alertConfig, setAlertConfig] = useState(null); // { message, type, onConfirm }
 
   if (!isLoaded) return <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Loading...</div>;
 
   const handleGameSelect = (gameId) => {
     setSelectedGameId(gameId);
     setView('GAME_REVEAL');
+  };
+
+  const handleRemoveRequest = (gameId) => {
+    const game = games.find(g => g.id === gameId);
+    if (!game) return;
+
+    if (game.isCustom) {
+      // Permanent Delete for Custom Games
+      setAlertConfig({
+        type: 'delete',
+        message: `This will permanently delete "${game.name}". You can't undo this!`,
+        onConfirm: () => {
+          deleteGame(gameId);
+          setAlertConfig(null);
+        }
+      });
+    } else {
+      // Soft Hide for Default Games
+      setAlertConfig({
+        type: 'hide',
+        message: `Do you want to hide "${game.name}" from the arcade? You can bring it back later in Config.`,
+        onConfirm: () => {
+          toggleGameActive(gameId);
+          setAlertConfig(null);
+        }
+      });
+    }
   };
 
   const getActiveGame = () => games.find(g => g.id === selectedGameId);
@@ -109,6 +209,15 @@ function App() {
 
   return (
     <div className="container" style={{ position: 'relative', zIndex: 1, paddingBottom: '4rem' }}>
+
+      {alertConfig && (
+        <CuteAlert
+          message={alertConfig.message}
+          type={alertConfig.type}
+          onConfirm={alertConfig.onConfirm}
+          onCancel={() => setAlertConfig(null)}
+        />
+      )}
 
       {/* Solid Static Navbar */}
       <header className="app-header">
@@ -147,7 +256,7 @@ function App() {
                 key={game.id}
                 game={game}
                 onClick={() => handleGameSelect(game.id)}
-                onRemove={toggleGameActive}
+                onRemove={handleRemoveRequest}
               />
             ))}
 

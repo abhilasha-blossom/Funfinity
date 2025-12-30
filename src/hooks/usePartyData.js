@@ -98,6 +98,10 @@ export const usePartyData = () => {
         ));
     };
 
+    const deleteGame = (gameId) => {
+        setGames(prev => prev.filter(g => g.id !== gameId));
+    };
+
     const addCustomGame = (game) => {
         setGames(prev => [
             ...prev,
@@ -118,6 +122,7 @@ export const usePartyData = () => {
         updateScore,
         toggleGameActive,
         addCustomGame,
+        deleteGame,
         isLoaded
     };
 };

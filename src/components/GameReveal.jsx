@@ -19,6 +19,13 @@ const TeamDraft = ({ players, onComplete }) => {
 
     const handleSetupConfirm = () => {
         const numTeams = Math.ceil(players.length / teamSize);
+
+        if (numTeams <= 1) {
+            // If everyone fits in one team, just assign all to one team and skip draft
+            onComplete([players]);
+            return;
+        }
+
         // Initialize empty teams
         setTeams(Array(numTeams).fill([]));
         setStage('READY');
@@ -321,36 +328,34 @@ export function GameReveal({ game, players, updateScore, onBack }) {
 
                         {/* Left Col: Rules & Teams */}
                         <div>
-                            {/* Team Generator (Only for Team Games) */}
-                            {isTeamGame && (
-                                <div style={{ marginBottom: '3rem' }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                                        <h3 style={{ fontSize: '1.1rem', textTransform: 'uppercase', color: '#b2bec3', letterSpacing: '2px', fontWeight: 700 }}>TEAMS</h3>
-                                        <button className="glass-btn-ghost" onClick={() => setShowDraft(true)} style={{ fontSize: '0.8rem', padding: '0.5rem 1rem' }}>
-                                            {generatedTeams.length > 0 ? '🔄 Restart Draft' : '🎲 Start Team Draft'}
-                                        </button>
-                                    </div>
-
-                                    {teamView && generatedTeams.length > 0 ? (
-                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                                            {generatedTeams.map((team, idx) => (
-                                                <div key={idx} style={{
-                                                    background: `rgba(${parseInt(COLORS[idx % COLORS.length].slice(1, 3), 16)}, ${parseInt(COLORS[idx % COLORS.length].slice(3, 5), 16)}, ${parseInt(COLORS[idx % COLORS.length].slice(5, 7), 16)}, 0.1)`,
-                                                    padding: '1rem', borderRadius: '16px',
-                                                    border: `1px solid ${COLORS[idx % COLORS.length]}88`
-                                                }}>
-                                                    <h4 style={{ color: COLORS[idx % COLORS.length], marginBottom: '0.5rem', textTransform: 'uppercase' }}>TEAM {idx + 1}</h4>
-                                                    {team.map(p => <div key={p.id} style={{ fontSize: '1rem', fontWeight: 600 }}>• {p.name}</div>)}
-                                                </div>
-                                            ))}
-                                        </div>
-                                    ) : (
-                                        <div style={{ padding: '2rem', textAlign: 'center', background: 'rgba(0,0,0,0.02)', borderRadius: '16px', fontStyle: 'italic', color: '#b2bec3' }}>
-                                            Click 'Start Team Draft' to configure and assign teams.
-                                        </div>
-                                    )}
+                            {/* Team Generator (Available for ALL Games) */}
+                            <div style={{ marginBottom: '3rem' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                                    <h3 style={{ fontSize: '1.1rem', textTransform: 'uppercase', color: '#b2bec3', letterSpacing: '2px', fontWeight: 700 }}>TEAMS</h3>
+                                    <button className="glass-btn-ghost" onClick={() => setShowDraft(true)} style={{ fontSize: '0.8rem', padding: '0.5rem 1rem' }}>
+                                        {generatedTeams.length > 0 ? '🔄 Restart Draft' : '🎲 Start Team Draft'}
+                                    </button>
                                 </div>
-                            )}
+
+                                {teamView && generatedTeams.length > 0 ? (
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                        {generatedTeams.map((team, idx) => (
+                                            <div key={idx} style={{
+                                                background: `rgba(${parseInt(COLORS[idx % COLORS.length].slice(1, 3), 16)}, ${parseInt(COLORS[idx % COLORS.length].slice(3, 5), 16)}, ${parseInt(COLORS[idx % COLORS.length].slice(5, 7), 16)}, 0.1)`,
+                                                padding: '1rem', borderRadius: '16px',
+                                                border: `1px solid ${COLORS[idx % COLORS.length]}88`
+                                            }}>
+                                                <h4 style={{ color: COLORS[idx % COLORS.length], marginBottom: '0.5rem', textTransform: 'uppercase' }}>TEAM {idx + 1}</h4>
+                                                {team.map(p => <div key={p.id} style={{ fontSize: '1rem', fontWeight: 600 }}>• {p.name}</div>)}
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div style={{ padding: '2rem', textAlign: 'center', background: 'rgba(0,0,0,0.02)', borderRadius: '16px', fontStyle: 'italic', color: '#b2bec3' }}>
+                                        Click 'Start Team Draft' to configure and assign teams.
+                                    </div>
+                                )}
+                            </div>
 
                             <h3 style={{ fontSize: '1.1rem', textTransform: 'uppercase', color: '#b2bec3', letterSpacing: '2px', marginBottom: '1.5rem', fontWeight: 700 }}>Instructions</h3>
 
