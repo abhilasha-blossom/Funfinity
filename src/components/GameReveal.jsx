@@ -312,52 +312,84 @@ export function GameReveal({ game, players, updateScore, toggleGameComplete, upd
         }
     };
 
+    // Game logic states
+    const [queue, setQueue] = useState([]);
+    const [activePlayer, setActivePlayer] = useState(null);
+    const [finishedPlayers, setFinishedPlayers] = useState([]);
+    const [matchQueue, setMatchQueue] = useState([]);
+
     const handleDraftComplete = (teamsArray) => {
         setGeneratedTeams(teamsArray);
         setTeamView(true);
         setStage('VERSUS');
     };
 
-    // Mode Select Logic
+    // Refined Mode Selection Logic
     const selectMode = (mode) => {
+        // Shuffle ALL players once to avoid duplicates
+        const shuffled = [...players].sort(() => 0.5 - Math.random());
+
         if (mode === 'SOLO') {
             setTeamView(false);
-            setQueue([...players].sort(() => 0.5 - Math.random()).slice(1));
-            setActivePlayer([...players].sort(() => 0.5 - Math.random())[0]);
+            setMatchQueue([]);
+            // Queue everyone
+            setActivePlayer(shuffled[0]);
+            setQueue(shuffled.slice(1));
             setFinishedPlayers([]);
             setStage('GAME');
-        } else if (mode === '1V1') {
-            const shuffled = [...players].sort(() => 0.5 - Math.random());
-            setGeneratedTeams([[shuffled[0]], [shuffled[1]]]);
-            setTeamScores({});
+        }
+        else if (mode === '1V1') {
             setTeamView(true);
-            setStage('VERSUS');
-        } else {
+            setTeamScores({});
+
+            // Create Pairs (Matches)
+            const pairs = [];
+            for (let i = 0; i < shuffled.length; i += 2) {
+                if (shuffled[i + 1]) {
+                    pairs.push([[shuffled[i]], [shuffled[i + 1]]]);
+                }
+            }
+
+            if (pairs.length > 0) {
+                setGeneratedTeams(pairs[0]); // First match
+                setMatchQueue(pairs.slice(1)); // Rest of the matches
+                setStage('VERSUS');
+            }
+        }
+        else {
+            // TEAM MODE: Use the Team Draft UI
             setTeamView(true);
             setStage('DRAFT');
         }
     };
 
-    // Game/Scoring Logic (Solo)
-    const [queue, setQueue] = useState([]);
-    const [activePlayer, setActivePlayer] = useState(null);
-    const [finishedPlayers, setFinishedPlayers] = useState([]);
-
+    // Navigation for Queues
     const handleNextPlayer = () => {
         if (!activePlayer) return;
         setFinishedPlayers(prev => [...prev, activePlayer]);
-        // Auto-save individual score as we go
         updateScore(activePlayer.id, game.id, Number(localScores[activePlayer.id] || 0));
 
         if (queue.length > 0) {
             setActivePlayer(queue[0]);
             setQueue(prev => prev.slice(1));
-            // Pre-fill score input with 0 for next player if empty
             if (!localScores[queue[0].id]) {
                 setLocalScores(prev => ({ ...prev, [queue[0].id]: '' }));
             }
         } else {
-            setActivePlayer(null); // Game Over
+            setActivePlayer(null);
+            finishGame();
+        }
+    };
+
+    const handleNextMatch = () => {
+        handleSave(true); // Save current match scores
+
+        if (matchQueue.length > 0) {
+            setGeneratedTeams(matchQueue[0]);
+            setMatchQueue(prev => prev.slice(1));
+            setTeamScores({}); // Reset inputs
+            setStage('VERSUS'); // Show Reveal for next couple
+        } else {
             finishGame();
         }
     };
@@ -367,7 +399,7 @@ export function GameReveal({ game, players, updateScore, toggleGameComplete, upd
     };
 
     const finishGame = () => {
-        handleSave(true); // Save scores
+        handleSave(true);
         if (!game.completed) {
             toggleGameComplete(game.id);
         }
@@ -533,10 +565,74 @@ export function GameReveal({ game, players, updateScore, toggleGameComplete, upd
                                             {stage === 'RESULTS' && <button className="glass-btn" onClick={() => setStage('INFO')} style={{ fontSize: '0.8rem', padding: '0.5rem 1rem' }}>Back to Info</button>}
                                         </div>
 
-                                        {/* Scoreboard List */}
-                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', maxHeight: '500px', overflowY: 'auto' }}>
+                                        {stage === 'GAME' && teamView && (
+                                            <div style={{ padding: '0 1rem' }}>
+                                                <h3 style={{ textAlign: 'center', marginBottom: '1.5rem', fontSize: '1.2rem', color: '#636e72', textTransform: 'uppercase', letterSpacing: '2px' }}>
+                                                    {generatedTeams.length === 2 && generatedTeams[0].length === 1 ? 'DUEL SCORING' : 'TEAM RESULTS'}
+                                                </h3>
+
+                                                {/* Active Match Inputs */}
+                                                <div style={{ display: 'flex', gap: '2rem', marginBottom: '2rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+                                                    {generatedTeams.map((team, idx) => (
+                                                        <div key={idx} style={{
+                                                            flex: '1 1 200px', background: idx === 0 ? '#dfe6e9' : '#b2bec3',
+                                                            padding: '1.5rem', borderRadius: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center',
+                                                            boxShadow: '0 4px 15px rgba(0,0,0,0.05)', border: `4px solid ${idx === 0 ? '#74b9ff' : '#ff7675'}`
+                                                        }}>
+                                                            <div style={{ fontSize: '1.5rem', fontWeight: 900, marginBottom: '0.5rem', color: '#2d3436' }}>
+                                                                {team.length === 1 ? team[0].name : `TEAM ${idx + 1}`}
+                                                            </div>
+                                                            {team.length > 1 && (
+                                                                <div style={{ fontSize: '0.9rem', color: '#636e72', marginBottom: '1rem', textAlign: 'center' }}>
+                                                                    {team.map(p => p.name).join(', ')}
+                                                                </div>
+                                                            )}
+                                                            <input
+                                                                type="number"
+                                                                placeholder="0"
+                                                                className="glass-input"
+                                                                autoFocus={idx === 0}
+                                                                value={teamScores[idx] || ''}
+                                                                onChange={(e) => handleTeamScoreChange(idx, e.target.value)}
+                                                                style={{
+                                                                    width: '100px', height: '60px', fontSize: '2rem', textAlign: 'center',
+                                                                    background: 'white', borderRadius: '12px', border: 'none',
+                                                                    boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.1)'
+                                                                }}
+                                                            />
+                                                            <div style={{ fontSize: '0.8rem', marginTop: '0.5rem', color: '#636e72' }}>POINTS</div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+
+                                                {/* Match Queue Navigation */}
+                                                <div style={{ textAlign: 'center' }}>
+                                                    {matchQueue.length > 0 ? (
+                                                        <button
+                                                            className="glass-btn"
+                                                            onClick={handleNextMatch}
+                                                            style={{ width: '100%', background: 'linear-gradient(135deg, #0984e3, #74b9ff)', color: 'white', padding: '1rem', fontSize: '1.2rem' }}
+                                                        >
+                                                            CONFIRM & START NEXT DUEL ➡ ({matchQueue.length} left)
+                                                        </button>
+                                                    ) : (
+                                                        <button
+                                                            className="glass-btn"
+                                                            onClick={finishGame}
+                                                            style={{ width: '100%', padding: '1rem', fontSize: '1.2rem', background: '#2ecc71', color: 'white' }}
+                                                        >
+                                                            FINISH & SAVE RESULTS ✅
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Scoreboard List (Visible in all modes for reference) */}
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', maxHeight: '500px', overflowY: 'auto', marginTop: '1rem', borderTop: '2px dashed #dfe6e9', paddingTop: '1rem' }}>
+                                            <h4 style={{ color: '#b2bec3', textTransform: 'uppercase', fontSize: '0.9rem', marginBottom: '0.5rem' }}>Current Standings</h4>
                                             {players
-                                                .sort((a, b) => (Number(localScores[b.id]) || 0) - (Number(localScores[a.id]) || 0)) // Sort by score DESC
+                                                .sort((a, b) => (Number(localScores[b.id]) || 0) - (Number(localScores[a.id]) || 0))
                                                 .map(p => (
                                                     <div key={p.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.8rem', borderBottom: '1px solid #eee', background: 'white', borderRadius: '12px' }}>
                                                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -547,7 +643,6 @@ export function GameReveal({ game, players, updateScore, toggleGameComplete, upd
                                                         </div>
                                                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                                                             <span style={{ fontSize: '1.2rem', fontWeight: 800, color: '#6c5ce7' }}>{localScores[p.id] || 0} pts</span>
-                                                            {/* Inline Edit Functionality */}
                                                             <button
                                                                 onClick={() => {
                                                                     const newScore = prompt(`Update score for ${p.name}`, localScores[p.id] || 0);
@@ -565,18 +660,12 @@ export function GameReveal({ game, players, updateScore, toggleGameComplete, upd
                                                 ))}
                                         </div>
 
-                                        {stage === 'GAME' && teamView && (
-                                            <div style={{ marginTop: '2rem', textAlign: 'center' }}>
-                                                <p style={{ fontStyle: 'italic', color: '#b2bec3' }}>To set team scores, please use the Team Scoring inputs above (if visible) or manually edit individual scores here.</p>
-                                                {/* Team Scoring UI was removed from this view to simplify, focusing on the result list. If strict team scoring needed, can add back. */}
-                                                <button className="glass-btn" onClick={finishGame} style={{ marginTop: '1rem', width: '100%' }}>FINISH & LOCK SCORES</button>
-                                            </div>
-                                        )}
                                         {stage === 'GAME' && !teamView && (
                                             <div style={{ marginTop: '2rem' }}>
                                                 <button className="glass-btn" onClick={finishGame} style={{ width: '100%', background: '#2ecc71', color: 'white', boxShadow: '0 4px 15px rgba(46, 204, 113, 0.3)' }}>✅ COMPLETE MISSION</button>
                                             </div>
                                         )}
+
                                     </>
                                 )}
                             </div>
