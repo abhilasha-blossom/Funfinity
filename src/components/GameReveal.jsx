@@ -244,6 +244,7 @@ const TeamDraft = ({ players, onComplete, onBack }) => {
 
 export function GameReveal({ game, players, updateScore, onBack }) {
     const [localScores, setLocalScores] = useState({});
+    const [teamScores, setTeamScores] = useState({}); // New: For team mode scoring
     const [generatedTeams, setGeneratedTeams] = useState([]);
 
     // Stages: 'MODE_SELECT' -> 'DRAFT' (optional) -> 'GAME'
@@ -269,12 +270,31 @@ export function GameReveal({ game, players, updateScore, onBack }) {
         }
     };
 
+    const handleTeamScoreChange = (teamIdx, value) => {
+        if (value === '' || !isNaN(value)) {
+            setTeamScores(prev => ({ ...prev, [teamIdx]: value }));
+        }
+    };
+
     const handleSave = () => {
-        players.forEach(p => {
-            const val = localScores[p.id];
-            const numVal = val === '' ? null : Number(val);
-            updateScore(p.id, game.id, numVal);
-        });
+        if (teamView && generatedTeams.length > 0) {
+            // Distribute Team Scores
+            generatedTeams.forEach((team, idx) => {
+                const tScore = Number(teamScores[idx]);
+                if (!isNaN(tScore) && teamScores[idx] !== undefined && teamScores[idx] !== '') {
+                    // Divide equally (keep decimals if any)
+                    const splitScore = tScore / team.length;
+                    team.forEach(p => updateScore(p.id, game.id, splitScore));
+                }
+            });
+        } else {
+            // Individual Scores
+            players.forEach(p => {
+                const val = localScores[p.id];
+                const numVal = val === '' ? null : Number(val);
+                updateScore(p.id, game.id, numVal);
+            });
+        }
         onBack();
     };
 
@@ -475,19 +495,45 @@ export function GameReveal({ game, players, updateScore, onBack }) {
                                 </div>
 
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                                    {players.map(player => (
-                                        <div key={player.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                            <span style={{ fontWeight: 600, fontSize: '1.1rem' }}>{player.name}</span>
-                                            <input
-                                                type="number"
-                                                className="glass-input"
-                                                style={{ width: '80px', padding: '0.8rem', textAlign: 'center', background: 'white' }}
-                                                placeholder="-"
-                                                value={localScores[player.id]}
-                                                onChange={(e) => handleScoreChange(player.id, e.target.value)}
-                                            />
-                                        </div>
-                                    ))}
+                                    {teamView && generatedTeams.length > 0 ? (
+                                        // TEAM SCORING INPUTS
+                                        generatedTeams.map((team, idx) => (
+                                            <div key={idx} style={{
+                                                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                                                padding: '0.5rem', borderBottom: '1px solid #eee'
+                                            }}>
+                                                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                                    <span style={{ fontWeight: 800, color: COLORS[idx % COLORS.length] }}>TEAM {idx + 1}</span>
+                                                    <span style={{ fontSize: '0.8rem', color: '#b2bec3' }}>
+                                                        {team.map(p => p.name).join(', ')}
+                                                    </span>
+                                                </div>
+                                                <input
+                                                    type="number"
+                                                    className="glass-input"
+                                                    style={{ width: '80px', padding: '0.8rem', textAlign: 'center', background: 'white', border: `2px solid ${COLORS[idx % COLORS.length]}` }}
+                                                    placeholder="Team Pts"
+                                                    value={teamScores[idx] || ''}
+                                                    onChange={(e) => handleTeamScoreChange(idx, e.target.value)}
+                                                />
+                                            </div>
+                                        ))
+                                    ) : (
+                                        // INDIVIDUAL SCORING INPUTS
+                                        players.map(player => (
+                                            <div key={player.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                                <span style={{ fontWeight: 600, fontSize: '1.1rem' }}>{player.name}</span>
+                                                <input
+                                                    type="number"
+                                                    className="glass-input"
+                                                    style={{ width: '80px', padding: '0.8rem', textAlign: 'center', background: 'white' }}
+                                                    placeholder="-"
+                                                    value={localScores[player.id]}
+                                                    onChange={(e) => handleScoreChange(player.id, e.target.value)}
+                                                />
+                                            </div>
+                                        ))
+                                    )}
                                 </div>
 
                                 <div style={{ marginTop: '3rem' }}>
