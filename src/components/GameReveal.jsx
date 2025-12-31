@@ -253,7 +253,7 @@ export function GameReveal({ game, players, updateScore, toggleGameComplete, upd
 
     // Edit Mode State
     const [isEditing, setIsEditing] = useState(false);
-    const [editData, setEditData] = useState({ brief: game.brief, rules: game.rules || [] });
+    const [editData, setEditData] = useState({ name: game.name, brief: game.brief, rules: game.rules || [] });
     // Cute Modal State
     const [editingScore, setEditingScore] = useState(null);
 
@@ -271,7 +271,7 @@ export function GameReveal({ game, players, updateScore, toggleGameComplete, upd
 
     // Sync edit data when game changes (or initially)
     useEffect(() => {
-        setEditData({ brief: game.brief, rules: game.rules || [] });
+        setEditData({ name: game.name, brief: game.brief, rules: game.rules || [] });
     }, [game]);
 
 
@@ -501,9 +501,32 @@ export function GameReveal({ game, players, updateScore, toggleGameComplete, upd
                                 {game.completed ? '✓ COMPLETED' : '⭕ IN PROGRESS'}
                             </button>
 
+                            {/* EDIT TOGGLE (Moved to Header, beside Close Button) */}
+                            {!game.completed && (
+                                <button
+                                    onClick={() => { if (isEditing) saveGameDetails(); else setIsEditing(true); }}
+                                    style={{
+                                        position: 'absolute', top: '2rem', right: '6rem', // Positioned left of Close Button (2rem right + 40px width + gap)
+                                        background: isEditing ? '#2ecc71' : 'white',
+                                        color: isEditing ? 'white' : '#6c5ce7',
+                                        border: 'none', borderRadius: '50%',
+                                        width: '40px', height: '40px',
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                        cursor: 'pointer', fontSize: '1.2rem',
+                                        boxShadow: '0 4px 10px rgba(0,0,0,0.1)',
+                                        transition: 'all 0.2s',
+                                        zIndex: 20
+                                    }}
+                                    title={isEditing ? "Save Changes" : "Edit Game Details"}
+                                >
+                                    {isEditing ? '💾' : '✏️'}
+                                </button>
+                            )}
+
                             {isEditing ? (
                                 <div style={{ width: '100%', marginTop: '3rem' }}>
-                                    <input value={editData.brief} onChange={e => setEditData({ ...editData, brief: e.target.value })} className="glass-input" style={{ width: '100%', fontSize: '1.2rem', marginBottom: '1rem', fontWeight: 600, color: '#6c5ce7' }} placeholder="Brief Description" />
+                                    <input value={editData.name} onChange={e => setEditData({ ...editData, name: e.target.value })} className="glass-input" style={{ width: '100%', fontSize: '3rem', marginBottom: '0.5rem', fontWeight: 900, color: '#2d3436', textAlign: 'center' }} placeholder="Game Name" />
+                                    <input value={editData.brief} onChange={e => setEditData({ ...editData, brief: e.target.value })} className="glass-input" style={{ width: '100%', fontSize: '1.2rem', marginBottom: '1rem', fontWeight: 600, color: '#6c5ce7', textAlign: 'center' }} placeholder="Brief Description" />
                                 </div>
                             ) : (
                                 <>
@@ -520,11 +543,6 @@ export function GameReveal({ game, players, updateScore, toggleGameComplete, upd
                             <div>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
                                     <h3 style={{ fontSize: '1.1rem', textTransform: 'uppercase', color: '#b2bec3', letterSpacing: '2px', fontWeight: 700 }}>Instructions</h3>
-                                    {!game.completed && (
-                                        <button onClick={() => { if (isEditing) saveGameDetails(); else setIsEditing(true); }} className="glass-btn-ghost" style={{ fontSize: '0.8rem', padding: '0.4rem 0.8rem' }}>
-                                            {isEditing ? '💾 Save Changes' : '✏️ Edit'}
-                                        </button>
-                                    )}
                                 </div>
 
                                 {isEditing ? (
