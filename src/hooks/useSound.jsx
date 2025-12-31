@@ -4,31 +4,29 @@ const SoundContext = createContext();
 
 // Reliable fun UI sounds
 const SOUNDS = {
-    hover: 'https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3', // Soft pop
-    click: 'https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3', // Positive click
-    open: 'https://assets.mixkit.co/active_storage/sfx/2044/2044-preview.mp3', // Swoosh
-    success: 'https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3', // Success chime
-    win: 'https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3', // Celebration
-    tick: 'https://assets.mixkit.co/active_storage/sfx/2572/2572-preview.mp3', // Tick
-    alarm: 'https://assets.mixkit.co/active_storage/sfx/951/951-preview.mp3', // Alarm
-    eraser: 'https://assets.mixkit.co/active_storage/sfx/2573/2573-preview.mp3', // Soft scratch
-    cheer: 'https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3', // Crowd applause
-    cheer: 'https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3', // Crowd applause
-    // Using local file in public folder for reliability
+    hover: 'https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3', // Soft pop (Keep remote or download if needed)
+    click: '/click.mp3',
+    open: 'https://assets.mixkit.co/active_storage/sfx/2044/2044-preview.mp3',
+    success: '/success.mp3',
+    win: 'https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3',
+    tick: '/tick.mp3',
+    alarm: '/alarm.mp3',
+    eraser: 'https://assets.mixkit.co/active_storage/sfx/2573/2573-preview.mp3',
+    cheer: '/cheer.mp3',
     bgm: '/bgm.mp3',
 };
 
 export const SoundProvider = ({ children }) => {
-    const [isSoundOn, setIsSoundOn] = useState(() => {
-        const saved = localStorage.getItem('funfinity_sound');
+    const [isBgmOn, setIsBgmOn] = useState(() => {
+        const saved = localStorage.getItem('funfinity_bgm');
         return saved !== null ? JSON.parse(saved) : true;
     });
 
     const audioRefs = useRef({});
 
     useEffect(() => {
-        localStorage.setItem('funfinity_sound', JSON.stringify(isSoundOn));
-    }, [isSoundOn]);
+        localStorage.setItem('funfinity_bgm', JSON.stringify(isBgmOn));
+    }, [isBgmOn]);
 
     // Preload sounds
     useEffect(() => {
@@ -48,22 +46,23 @@ export const SoundProvider = ({ children }) => {
         const bgm = audioRefs.current['bgm'];
         if (!bgm) return;
 
-        if (!isSoundOn) {
+        if (!isBgmOn) {
             bgm.pause();
         } else if (bgm.paused && bgm.currentTime > 0) {
             // Resume if it was playing before
             bgm.play().catch(() => { });
         }
-    }, [isSoundOn]);
+    }, [isBgmOn]);
 
     const playSound = (soundKey) => {
-        if (!isSoundOn) return;
-
-        // Piggyback: Try to start BGM on any sound interaction
+        // Piggyback: Try to start BGM on any sound interaction (only if BGM is enabled)
         const bgm = audioRefs.current['bgm'];
-        if (bgm && bgm.paused) {
+        if (bgm && bgm.paused && isBgmOn) {
             bgm.play().catch(e => console.log("BGM Start Failed", e));
         }
+
+        // Always play sound effects (except BGM which is controlled separately)
+        if (soundKey === 'bgm') return;
 
         const audio = audioRefs.current[soundKey];
         if (audio) {
@@ -72,12 +71,12 @@ export const SoundProvider = ({ children }) => {
         }
     };
 
-    const toggleSound = () => {
-        setIsSoundOn(prev => !prev);
+    const toggleBgm = () => {
+        setIsBgmOn(prev => !prev);
     };
 
     return (
-        <SoundContext.Provider value={{ isSoundOn, toggleSound, playSound }}>
+        <SoundContext.Provider value={{ isBgmOn, toggleBgm, playSound }}>
             {children}
         </SoundContext.Provider>
     );
@@ -87,7 +86,7 @@ export const useSound = () => {
     const context = useContext(SoundContext);
     if (!context) {
         console.warn("useSound must be used within a SoundProvider");
-        return { playSound: () => { }, isSoundOn: true, toggleSound: () => { } };
+        return { playSound: () => { }, isBgmOn: true, toggleBgm: () => { } };
     }
     return context;
 };

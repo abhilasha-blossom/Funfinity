@@ -243,7 +243,7 @@ const TeamDraft = ({ players, onComplete, onBack }) => {
     );
 };
 
-export function GameReveal({ game, players, updateScore, toggleGameComplete, updateGame, onBack }) {
+export function GameReveal({ game, players, updateScore, toggleGameComplete, updateGame, resetGameScores, onBack }) {
     const [localScores, setLocalScores] = useState({});
     const [teamScores, setTeamScores] = useState({});
     const [generatedTeams, setGeneratedTeams] = useState([]);
@@ -560,6 +560,48 @@ export function GameReveal({ game, players, updateScore, toggleGameComplete, upd
                             <button onClick={() => { playSound('success'); toggleGameComplete(game.id); }} style={{ position: 'absolute', top: '2rem', left: '2rem', background: 'rgba(255,255,255,0.2)', border: '1px solid rgba(255,255,255,0.4)', borderRadius: '20px', padding: '0.5rem 1rem', fontSize: '0.9rem', color: game.completed ? 'white' : '#636e72', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}>
                                 {game.completed ? '✓ COMPLETED' : '⭕ IN PROGRESS'}
                             </button>
+
+                            {/* REPLAY BUTTON (Only when completed) */}
+                            {game.completed && (
+                                <button
+                                    onClick={() => {
+                                        playSound('click');
+                                        resetGameScores(game.id);
+                                        setStage('INFO');
+                                        setLocalScores({});
+                                        setTeamScores({});
+                                        setGeneratedTeams([]);
+                                    }}
+                                    style={{
+                                        position: 'absolute', top: '2rem', left: '12rem',
+                                        background: 'rgba(255,255,255,0.3)',
+                                        color: 'white',
+                                        border: '2px solid rgba(255,255,255,0.5)',
+                                        borderRadius: '20px',
+                                        padding: '0.5rem 1.5rem',
+                                        fontSize: '0.9rem',
+                                        fontWeight: 800,
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '8px',
+                                        boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
+                                        transition: 'all 0.2s',
+                                        zIndex: 20
+                                    }}
+                                    onMouseEnter={(e) => {
+                                        e.target.style.background = 'rgba(255,255,255,0.4)';
+                                        e.target.style.transform = 'scale(1.05)';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        e.target.style.background = 'rgba(255,255,255,0.3)';
+                                        e.target.style.transform = 'scale(1)';
+                                    }}
+                                    title="Reset scores and replay this game"
+                                >
+                                    🔄 REPLAY
+                                </button>
+                            )}
 
                             {/* EDIT TOGGLE (Moved to Header, beside Close Button) */}
                             {!game.completed && (

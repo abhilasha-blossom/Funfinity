@@ -168,10 +168,24 @@ export const usePartyData = () => {
         ));
     };
 
+    const resetGameScores = (gameId) => {
+        // Reset all player scores for this specific game
+        setPlayers(prev => prev.map(p => {
+            const newScores = { ...p.scores };
+            delete newScores[gameId];
+            return { ...p, scores: newScores };
+        }));
+
+        // Mark game as not completed
+        setGames(prev => prev.map(g =>
+            g.id === gameId ? { ...g, completed: false } : g
+        ));
+    };
+
     return {
         players, games, addPlayer, removePlayer, updatePlayerAvatar,
         updateScore, toggleGameActive, addCustomGame, deleteGame,
-        toggleGameComplete, updateGame,
+        toggleGameComplete, updateGame, resetGameScores,
         resetAllData, resetScores,
         isLoaded
     };

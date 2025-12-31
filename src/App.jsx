@@ -189,10 +189,10 @@ const CuteAlert = ({ message, type, onConfirm, onCancel }) => {
 };
 
 const SoundToggle = () => {
-  const { isSoundOn, toggleSound } = useSound();
+  const { isBgmOn, toggleBgm } = useSound();
   return (
-    <button onClick={toggleSound} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', opacity: 0.8 }} title="Toggle Sound">
-      {isSoundOn ? '🔊' : '🔇'}
+    <button onClick={toggleBgm} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', opacity: 0.8 }} title="Toggle Background Music">
+      {isBgmOn ? '🎵' : '🔇'}
     </button>
   );
 };
@@ -200,7 +200,7 @@ const SoundToggle = () => {
 
 
 function App() {
-  const { players, games, addPlayer, removePlayer, updatePlayerAvatar, updateScore, toggleGameActive, toggleGameComplete, updateGame, addCustomGame, deleteGame, resetAllData, resetScores, isLoaded } = usePartyData();
+  const { players, games, addPlayer, removePlayer, updatePlayerAvatar, updateScore, toggleGameActive, toggleGameComplete, updateGame, addCustomGame, deleteGame, resetGameScores, resetAllData, resetScores, isLoaded } = usePartyData();
   const [view, setView] = useState('LANDING');
   const [selectedGameId, setSelectedGameId] = useState(null);
   const [alertConfig, setAlertConfig] = useState(null); // { message, type, onConfirm }
@@ -318,6 +318,7 @@ function App() {
             updateScore={updateScore}
             toggleGameComplete={toggleGameComplete}
             updateGame={updateGame}
+            resetGameScores={resetGameScores}
             onBack={() => setView('HOME')}
           />
         )}
