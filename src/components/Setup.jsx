@@ -1,19 +1,18 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
+import { getAvatarUrl } from '../utils/avatar';
 
 export function Setup({ players, addPlayer, removePlayer, updatePlayerAvatar }) {
     const [name, setName] = useState('');
     const [selectedAvatarSeed, setSelectedAvatarSeed] = useState(null);
     const [editPlayerId, setEditPlayerId] = useState(null); // ID of player being edited
 
-    // Curated Seeds: Fair Skin, Dark/Brown Hair
-    const GIRL_SEEDS = ['Alice', 'Bella', 'Daisy', 'Eva', 'Fiona', 'Grace', 'Hanna', 'Ivy', 'Julia', 'Katie'];
-    const BOY_SEEDS = ['Adam', 'Ben', 'Caleb', 'Daniel', 'Ethan', 'Felix', 'Gabriel', 'Henry', 'Isaac', 'Jack'];
-    const ALL_SEEDS = [...GIRL_SEEDS, ...BOY_SEEDS];
+    // 13 Boys and 7 Girls Options
+    const BOY_SEEDS = Array.from({ length: 13 }, (_, i) => `boy-${i + 1}`);
+    const GIRL_SEEDS = Array.from({ length: 7 }, (_, i) => `girl-${i + 1}`);
+    const ALL_SEEDS = [...GIRL_SEEDS, ...BOY_SEEDS]; // Girls first or mixed? Let's do Girls first then Boys or vice versa.
+    // Actually typically alternating is nice, but user asked specifically for counts. Let's group them or mix validly.
+    // Let's just list them.
 
-    // Common Style params for "Cute" look
-    const AVATAR_PARAMS = '&skinColor=f2d3b1,ffdfbf&hairColor=2c1b18,4a312c';
-
-    const getAvatarUrl = (seed) => `https://api.dicebear.com/9.x/adventurer/svg?seed=${seed}${AVATAR_PARAMS}`;
 
     const handleSubmit = (e) => {
         e.preventDefault();

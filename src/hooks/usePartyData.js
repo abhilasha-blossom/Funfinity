@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { INITIAL_GAMES } from '../data/initialGames';
 
-const STORAGE_KEY = 'party_app_data_v3';
+const STORAGE_KEY = 'party_app_data_v5';
 
 const DEFAULT_PLAYERS = [
     "Arnav", "Mohit", "Sagar", "Yashraj", "Harsh",
@@ -13,80 +13,75 @@ export const usePartyData = () => {
     const [games, setGames] = useState(INITIAL_GAMES);
     const [isLoaded, setIsLoaded] = useState(false);
 
+    const initializeDefaults = () => {
+        // Specific seeds for the default 10 players
+        // Boys: boy-1 to boy-7
+        // Girls: girl-1 to girl-3
+        // Mapping based on known names
+        const NAME_TO_SEED = {
+            "Arnav": "boy-1", "Mohit": "boy-2", "Sagar": "boy-3", "Yashraj": "boy-4", "Harsh": "boy-5",
+            "Ananya": "girl-1", "Shruti": "girl-2", "Nitya": "girl-3",
+            "Raj": "boy-6", "Manish": "boy-7"
+        };
+
+        setPlayers(DEFAULT_PLAYERS.map((name, index) => {
+            // Fallback logic for safety, though mapped above
+            const defaultSeed = index < 7 ? `boy-${index + 1}` : `girl-${index - 6}`;
+            const seed = NAME_TO_SEED[name] || defaultSeed;
+
+            return {
+                id: Date.now().toString() + Math.random().toString(36).substr(2, 9) + index,
+                name,
+                avatarSeed: seed,
+                scores: {}
+            };
+        }));
+        setGames(INITIAL_GAMES);
+    };
+
     // Load from LocalStorage on mount
     useEffect(() => {
         const savedData = localStorage.getItem(STORAGE_KEY);
         if (savedData) {
-            const parsed = JSON.parse(savedData);
+            try {
+                const parsed = JSON.parse(savedData);
 
-            // Use saved players, or default if empty
-            if (parsed.players && parsed.players.length > 0) {
-                // Ensure legacy players get an avatar if missing
-                const patchedPlayers = parsed.players.map(p => ({
-                    ...p,
-                    avatarSeed: p.avatarSeed || Math.random().toString(36)
-                }));
-                setPlayers(patchedPlayers);
-            } else {
-                setPlayers(DEFAULT_PLAYERS.map((name) => {
-                    const GIRLS_NAMES = ['Ananya', 'Shruti', 'Nitya']; // Specific overrides
-                    const GIRL_SEEDS = ['Alice', 'Bella', 'Daisy', 'Eva', 'Fiona', 'Grace', 'Hanna', 'Ivy', 'Julia', 'Katie'];
-                    const BOY_SEEDS = ['Adam', 'Ben', 'Caleb', 'Daniel', 'Ethan', 'Felix', 'Gabriel', 'Henry', 'Isaac', 'Jack'];
+                // Load Players
+                if (parsed.players && parsed.players.length > 0) {
+                    const patchedPlayers = parsed.players.map(p => ({
+                        ...p,
+                        avatarSeed: p.avatarSeed || Math.random().toString(36)
+                    }));
+                    setPlayers(patchedPlayers);
+                } else {
+                    initializeDefaults();
+                }
 
-                    let seed;
-                    if (GIRLS_NAMES.includes(name)) {
-                        // Deterministic assignment for stability
-                        seed = GIRL_SEEDS[GIRLS_NAMES.indexOf(name) % GIRL_SEEDS.length];
-                    } else {
-                        // Deterministic assignment for boys too based on name length/char code? 
-                        // Or just random? Let's use index based on the full list to avoid "random" changes on reload if localstorage is cleared
-                        const index = DEFAULT_PLAYERS.indexOf(name);
-                        seed = BOY_SEEDS[index % BOY_SEEDS.length];
-                    }
-
-                    return {
-                        id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
-                        name,
-                        avatarSeed: seed,
-                        scores: {}
-                    };
-                }));
-            }
-
-            // Merge saved games with initial games to ensure new predefined games appear if we update code
-            // But for now, we just trust the saved games if they exist, or fallback to initial
-            if (parsed.games && parsed.games.length > 0) {
-                // Merge saved state with initial games
-                const mergedGames = INITIAL_GAMES.map(initGame => {
-                    const savedGame = parsed.games.find(g => g.id === initGame.id);
-                    if (savedGame) {
-                        // Preserve saved data, but fill in any missing fields from initial game
-                        return {
-                            ...initGame,
-                            ...savedGame,
-                            // Ensure these exist even if not in saved data
-                            completed: savedGame.completed || false,
-                            active: savedGame.active !== undefined ? savedGame.active : initGame.active
-                        };
-                    }
-                    return { ...initGame, completed: false };
-                });
-
-                // Also retain any custom games the user added
-                const customGames = parsed.games.filter(g => g.isCustom);
-
-                setGames([...mergedGames, ...customGames]);
-            } else {
-                setGames(INITIAL_GAMES);
+                // Load and Merge Games
+                if (parsed.games && parsed.games.length > 0) {
+                    const mergedGames = INITIAL_GAMES.map(initGame => {
+                        const savedGame = parsed.games.find(g => g.id === initGame.id);
+                        if (savedGame) {
+                            return {
+                                ...initGame,
+                                ...savedGame,
+                                completed: savedGame.completed || false,
+                                active: savedGame.active !== undefined ? savedGame.active : initGame.active
+                            };
+                        }
+                        return { ...initGame, completed: false };
+                    });
+                    const customGames = parsed.games.filter(g => g.isCustom);
+                    setGames([...mergedGames, ...customGames]);
+                } else {
+                    setGames(INITIAL_GAMES);
+                }
+            } catch (e) {
+                console.error("Failed to parse party data:", e);
+                initializeDefaults();
             }
         } else {
-            // No saved data, initialize defaults
-            setPlayers(DEFAULT_PLAYERS.map(name => ({
-                id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
-                name,
-                avatarSeed: Math.floor(Math.random() * 1000).toString(),
-                scores: {}
-            })));
+            initializeDefaults();
         }
         setIsLoaded(true);
     }, []);
@@ -161,10 +156,8 @@ export const usePartyData = () => {
         ));
     };
 
-
     const resetAllData = () => {
         localStorage.removeItem(STORAGE_KEY);
-        // Force reload to clear all state and re-mount
         window.location.reload();
     };
 
@@ -178,26 +171,20 @@ export const usePartyData = () => {
         ));
     };
 
-    const resetGameScores = (gameId) => {
-        // Reset all player scores for this specific game
-        setPlayers(prev => prev.map(p => {
-            const newScores = { ...p.scores };
-            delete newScores[gameId];
-            return { ...p, scores: newScores };
-        }));
-
-        // Mark game as not completed
-        setGames(prev => prev.map(g =>
-            g.id === gameId ? { ...g, completed: false } : g
-        ));
-    };
-
     return {
-        players, games, addPlayer, removePlayer, updatePlayerAvatar,
-        updateScore, toggleGameActive, addCustomGame, deleteGame,
-        toggleGameComplete, updateGame, resetGameScores,
-        resetAllData, resetScores,
-        isLoaded
+        players,
+        games,
+        isLoaded,
+        addPlayer,
+        removePlayer,
+        updateScore,
+        toggleGameActive,
+        addCustomGame,
+        deleteGame,
+        updateGame,
+        resetAllData,
+        resetScores,
+        updatePlayerAvatar,
+        toggleGameComplete
     };
 };
-

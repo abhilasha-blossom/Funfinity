@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSound } from '../hooks/useSound.jsx';
+import { getAvatarUrl } from '../utils/avatar';
 
 // Multi-Team "Battle Royale" Draft Component
 const TeamDraft = ({ players, onComplete, onBack }) => {
@@ -533,7 +534,7 @@ export function GameReveal({ game, players, updateScore, toggleGameComplete, upd
                                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', animation: idx === 0 ? 'slideRight 1s ease' : 'slideLeft 1s ease' }}>
                                     {team.length === 1 && (
                                         <div style={{ width: '200px', height: '200px', borderRadius: '50%', border: `8px solid ${COLORS[idx % COLORS.length]}`, overflow: 'hidden', marginBottom: '1rem', background: '#ecf0f1', boxShadow: `0 0 50px ${COLORS[idx % COLORS.length]}44` }}>
-                                            <img src={`https://api.dicebear.com/9.x/adventurer/svg?seed=${team[0].avatarSeed}&skinColor=f2d3b1,ffdfbf&hairColor=2c1b18,4a312c`} alt={team[0].name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                            <img src={getAvatarUrl(team[0].avatarSeed)} alt={team[0].name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                         </div>
                                     )}
                                     <h2 style={{ fontSize: '3rem', color: COLORS[idx % COLORS.length], textTransform: 'uppercase', fontWeight: 900, marginBottom: '0.5rem' }}>{team.length === 1 ? team[0].name : `TEAM ${idx + 1}`}</h2>
@@ -556,7 +557,7 @@ export function GameReveal({ game, players, updateScore, toggleGameComplete, upd
                     <button onClick={onBack} style={{ position: 'absolute', top: '2rem', right: '2rem', background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '50%', width: '50px', height: '50px', cursor: 'pointer', fontSize: '1.5rem', color: 'white', zIndex: 100 }}>✕</button>
                     <div style={{ fontWeight: 900, color: 'rgba(255,255,255,0.3)', letterSpacing: '5px', marginBottom: '2rem', fontSize: '1.5rem' }}>PLAYER {finishedPlayers.length + 1} / {players.length}</div>
                     <div style={{ width: '250px', height: '250px', borderRadius: '50%', border: '10px solid #6c5ce7', overflow: 'hidden', marginBottom: '2rem', background: '#ecf0f1', boxShadow: '0 0 60px rgba(108, 92, 231, 0.4)', animation: 'pop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)' }}>
-                        <img src={`https://api.dicebear.com/9.x/adventurer/svg?seed=${activePlayer.avatarSeed}&skinColor=f2d3b1,ffdfbf&hairColor=2c1b18,4a312c`} alt={activePlayer.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        <img src={getAvatarUrl(activePlayer.avatarSeed)} alt={activePlayer.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     </div>
                     <h1 style={{ color: 'white', fontSize: '5rem', marginBottom: '3rem', fontWeight: 900 }}>{activePlayer.name}</h1>
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2rem' }}>
@@ -908,7 +909,7 @@ export function GameReveal({ game, players, updateScore, toggleGameComplete, upd
                                                     <div key={p.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.8rem', borderBottom: '1px solid #eee', background: 'white', borderRadius: '12px' }}>
                                                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                                                             <div style={{ width: '30px', height: '30px', borderRadius: '50%', background: '#eee', overflow: 'hidden' }}>
-                                                                <img src={`https://api.dicebear.com/9.x/adventurer/svg?seed=${p.avatarSeed}&skinColor=f2d3b1,ffdfbf&hairColor=2c1b18,4a312c`} alt={p.name} style={{ width: '100%', height: '100%' }} />
+                                                                <img src={getAvatarUrl(p.avatarSeed)} alt={p.name} style={{ width: '100%', height: '100%' }} />
                                                             </div>
                                                             <span style={{ fontWeight: 600 }}>{p.name}</span>
                                                         </div>

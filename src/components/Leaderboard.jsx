@@ -1,4 +1,5 @@
 import React from 'react';
+import { getAvatarUrl } from '../utils/avatar';
 
 // Gaming Rank Row
 const RankRow = ({ player, rank, totalScore }) => {
@@ -35,7 +36,7 @@ const RankRow = ({ player, rank, totalScore }) => {
             {/* Player Info with Avatar */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                 <img
-                    src={`https://api.dicebear.com/9.x/adventurer/svg?seed=${player.avatarSeed}&skinColor=f2d3b1,ffdfbf&hairColor=2c1b18,4a312c`}
+                    src={getAvatarUrl(player.avatarSeed)}
                     alt="avatar"
                     style={{
                         width: '50px', height: '50px', borderRadius: '12px',

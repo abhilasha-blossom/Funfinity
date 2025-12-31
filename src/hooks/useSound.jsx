@@ -7,7 +7,7 @@ const SOUNDS = {
     hover: 'https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3', // Soft pop (Keep remote or download if needed)
     click: '/click.mp3',
     open: 'https://assets.mixkit.co/active_storage/sfx/2044/2044-preview.mp3',
-    success: '/success.mp3',
+    success: 'https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3',
     win: 'https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3',
     tick: 'https://assets.mixkit.co/active_storage/sfx/2569/2569-preview.mp3', // Wall clock ticking (clean and sharp)
     alarm: 'https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3', // Alarm clock buzzer ring
@@ -19,7 +19,7 @@ const SOUNDS = {
 export const SoundProvider = ({ children }) => {
     const [isBgmOn, setIsBgmOn] = useState(() => {
         const saved = localStorage.getItem('funfinity_bgm_v2');
-        return saved !== null ? JSON.parse(saved) : false;
+        return saved !== null ? JSON.parse(saved) : true;
     });
 
     const audioRefs = useRef({});

@@ -8,6 +8,8 @@ import { HomeHero } from './components/HomeHero';
 import { Podium } from './components/Podium';
 import { SoundProvider, useSound } from './hooks/useSound.jsx';
 
+import { getAvatarUrl } from './utils/avatar';
+
 // GameZone Card with 3D Sticker Icon
 const GameZoneCard = ({ game, onClick, onRemove }) => {
   const isCompleted = game.completed;

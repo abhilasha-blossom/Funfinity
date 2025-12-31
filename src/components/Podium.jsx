@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import confetti from 'canvas-confetti';
 import { useSound } from '../hooks/useSound.jsx';
+import { getAvatarUrl } from '../utils/avatar';
 
 export function Podium({ players, onBack }) {
     const calculateTotalScore = (player) => {
@@ -93,7 +94,7 @@ export function Podium({ players, onBack }) {
                             position: 'relative'
                         }}>
                             <img
-                                src={`https://api.dicebear.com/9.x/adventurer/svg?seed=${runnerUp.avatarSeed}&skinColor=f2d3b1,ffdfbf&hairColor=2c1b18,4a312c`}
+                                src={getAvatarUrl(runnerUp.avatarSeed)}
                                 alt="Runner Up"
                                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                             />
@@ -131,7 +132,7 @@ export function Podium({ players, onBack }) {
                         boxShadow: '0 0 50px rgba(241, 196, 15, 0.5)'
                     }}>
                         <img
-                            src={`https://api.dicebear.com/9.x/adventurer/svg?seed=${winner.avatarSeed}&skinColor=f2d3b1,ffdfbf&hairColor=2c1b18,4a312c`}
+                            src={getAvatarUrl(winner.avatarSeed)}
                             alt="Winner"
                             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                         />
