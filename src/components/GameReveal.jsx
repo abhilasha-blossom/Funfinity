@@ -257,6 +257,7 @@ export function GameReveal({ game, players, updateScore, toggleGameComplete, upd
     const [editData, setEditData] = useState({ name: game.name, brief: game.brief, rules: game.rules || [] });
     // Cute Modal State
     const [editingScore, setEditingScore] = useState(null);
+    const [showReplayConfirm, setShowReplayConfirm] = useState(false);
 
     // Sound Hook
     const { playSound } = useSound();
@@ -566,11 +567,7 @@ export function GameReveal({ game, players, updateScore, toggleGameComplete, upd
                                 <button
                                     onClick={() => {
                                         playSound('click');
-                                        resetGameScores(game.id);
-                                        setStage('INFO');
-                                        setLocalScores({});
-                                        setTeamScores({});
-                                        setGeneratedTeams([]);
+                                        setShowReplayConfirm(true);
                                     }}
                                     style={{
                                         position: 'absolute', top: '2rem', left: '12rem',
@@ -987,6 +984,131 @@ export function GameReveal({ game, players, updateScore, toggleGameComplete, upd
                             </button>
                         </div>
                     </div>
+                </div>
+            )}
+
+            {/* CUTE REPLAY CONFIRMATION MODAL */}
+            {showReplayConfirm && (
+                <div style={{
+                    position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
+                    background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)', zIndex: 5000,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    animation: 'fadeIn 0.2s ease-out'
+                }}>
+                    <div style={{
+                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                        borderRadius: '30px', padding: '3rem 2.5rem', width: '420px',
+                        boxShadow: '0 25px 60px rgba(0,0,0,0.3)',
+                        textAlign: 'center',
+                        animation: 'bounceIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55)',
+                        border: '3px solid rgba(255,255,255,0.2)'
+                    }}>
+                        {/* Cute Icon */}
+                        <div style={{
+                            fontSize: '5rem',
+                            marginBottom: '1rem',
+                            animation: 'spin 2s linear infinite'
+                        }}>🔄</div>
+
+                        <h3 style={{
+                            fontSize: '2rem',
+                            marginBottom: '1rem',
+                            color: 'white',
+                            fontWeight: 900,
+                            textShadow: '0 2px 10px rgba(0,0,0,0.2)'
+                        }}>Replay Game?</h3>
+
+                        <p style={{
+                            color: 'rgba(255,255,255,0.9)',
+                            marginBottom: '2rem',
+                            fontSize: '1.1rem',
+                            lineHeight: '1.6'
+                        }}>
+                            This will <strong>reset all scores</strong> for <strong style={{ color: '#ffd93d' }}>{game.name}</strong> and let you play again! 🎮
+                        </p>
+
+                        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+                            <button
+                                onClick={() => {
+                                    playSound('click');
+                                    setShowReplayConfirm(false);
+                                }}
+                                style={{
+                                    flex: 1, padding: '1rem 1.5rem', borderRadius: '20px',
+                                    border: '2px solid rgba(255,255,255,0.3)',
+                                    background: 'rgba(255,255,255,0.1)',
+                                    color: 'white',
+                                    fontWeight: 700,
+                                    cursor: 'pointer',
+                                    fontSize: '1rem',
+                                    transition: 'all 0.2s',
+                                    backdropFilter: 'blur(10px)'
+                                }}
+                                onMouseEnter={(e) => {
+                                    e.target.style.background = 'rgba(255,255,255,0.2)';
+                                    e.target.style.transform = 'scale(1.05)';
+                                }}
+                                onMouseLeave={(e) => {
+                                    e.target.style.background = 'rgba(255,255,255,0.1)';
+                                    e.target.style.transform = 'scale(1)';
+                                }}
+                            >
+                                ❌ Cancel
+                            </button>
+                            <button
+                                onClick={() => {
+                                    playSound('success');
+                                    resetGameScores(game.id);
+                                    setStage('INFO');
+                                    setLocalScores({});
+                                    setTeamScores({});
+                                    setGeneratedTeams([]);
+                                    setShowReplayConfirm(false);
+                                }}
+                                style={{
+                                    flex: 1, padding: '1rem 1.5rem', borderRadius: '20px',
+                                    border: 'none',
+                                    background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+                                    color: 'white',
+                                    fontWeight: 800,
+                                    cursor: 'pointer',
+                                    fontSize: '1rem',
+                                    boxShadow: '0 8px 20px rgba(245, 87, 108, 0.4)',
+                                    transition: 'all 0.2s'
+                                }}
+                                onMouseEnter={(e) => {
+                                    e.target.style.transform = 'scale(1.05) translateY(-2px)';
+                                    e.target.style.boxShadow = '0 12px 25px rgba(245, 87, 108, 0.5)';
+                                }}
+                                onMouseLeave={(e) => {
+                                    e.target.style.transform = 'scale(1) translateY(0)';
+                                    e.target.style.boxShadow = '0 8px 20px rgba(245, 87, 108, 0.4)';
+                                }}
+                            >
+                                ✨ Yes, Replay!
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Animations */}
+                    <style>{`
+                        @keyframes fadeIn {
+                            from { opacity: 0; }
+                            to { opacity: 1; }
+                        }
+                        
+                        @keyframes bounceIn {
+                            0% { transform: scale(0.3); opacity: 0; }
+                            50% { transform: scale(1.05); }
+                            70% { transform: scale(0.9); }
+                            100% { transform: scale(1); opacity: 1; }
+                        }
+                        
+                        @keyframes spin {
+                            from { transform: rotate(0deg); }
+                            to { transform: rotate(360deg); }
+                        }
+                    `}</style>
                 </div>
             )}
 
