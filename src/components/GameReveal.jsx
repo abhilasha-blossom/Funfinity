@@ -258,6 +258,7 @@ export function GameReveal({ game, players, updateScore, toggleGameComplete, upd
     // Cute Modal State
     const [editingScore, setEditingScore] = useState(null);
     const [showReplayConfirm, setShowReplayConfirm] = useState(false);
+    const [isSpeaking, setIsSpeaking] = useState(false);
 
     // Sound Hook
     const { playSound } = useSound();
@@ -642,6 +643,79 @@ export function GameReveal({ game, players, updateScore, toggleGameComplete, upd
                             <div>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
                                     <h3 style={{ fontSize: '1.1rem', textTransform: 'uppercase', color: '#b2bec3', letterSpacing: '2px', fontWeight: 700 }}>Instructions</h3>
+                                    {!isEditing && (
+                                        <button
+                                            onClick={() => {
+                                                playSound('click');
+
+                                                if (isSpeaking) {
+                                                    // Stop speaking
+                                                    window.speechSynthesis.cancel();
+                                                    setIsSpeaking(false);
+                                                } else {
+                                                    // Start speaking with cuter voice
+                                                    const speech = new SpeechSynthesisUtterance();
+                                                    const rulesText = `${game.name}. ${game.brief}. Rules: ${game.rules.join('. ')}`;
+                                                    speech.text = rulesText;
+                                                    speech.rate = 0.8; // Even slower for cute effect
+                                                    speech.pitch = 1.5; // Higher pitch for cuter voice
+                                                    speech.volume = 1;
+
+                                                    // Prioritize Google voices and natural-sounding options
+                                                    const voices = window.speechSynthesis.getVoices();
+                                                    const cuteVoice = voices.find(voice =>
+                                                        voice.name.includes('Google UK English Female') ||
+                                                        voice.name.includes('Google US English') ||
+                                                        voice.name.includes('Microsoft Zira') ||
+                                                        voice.name.includes('Samantha') ||
+                                                        (voice.lang.startsWith('en') && voice.name.toLowerCase().includes('female'))
+                                                    );
+                                                    if (cuteVoice) speech.voice = cuteVoice;
+
+                                                    speech.onstart = () => setIsSpeaking(true);
+                                                    speech.onend = () => setIsSpeaking(false);
+                                                    speech.onerror = () => setIsSpeaking(false);
+
+                                                    window.speechSynthesis.cancel(); // Stop any ongoing speech
+                                                    window.speechSynthesis.speak(speech);
+                                                }
+                                            }}
+                                            style={{
+                                                background: isSpeaking
+                                                    ? 'linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%)'
+                                                    : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                                color: 'white',
+                                                border: 'none',
+                                                borderRadius: '20px',
+                                                padding: '0.5rem 1rem',
+                                                fontSize: '0.85rem',
+                                                fontWeight: 700,
+                                                cursor: 'pointer',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '6px',
+                                                boxShadow: isSpeaking
+                                                    ? '0 4px 15px rgba(255, 107, 107, 0.4)'
+                                                    : '0 4px 15px rgba(102, 126, 234, 0.4)',
+                                                transition: 'all 0.2s'
+                                            }}
+                                            onMouseEnter={(e) => {
+                                                e.target.style.transform = 'scale(1.05)';
+                                                e.target.style.boxShadow = isSpeaking
+                                                    ? '0 6px 20px rgba(255, 107, 107, 0.5)'
+                                                    : '0 6px 20px rgba(102, 126, 234, 0.5)';
+                                            }}
+                                            onMouseLeave={(e) => {
+                                                e.target.style.transform = 'scale(1)';
+                                                e.target.style.boxShadow = isSpeaking
+                                                    ? '0 4px 15px rgba(255, 107, 107, 0.4)'
+                                                    : '0 4px 15px rgba(102, 126, 234, 0.4)';
+                                            }}
+                                            title={isSpeaking ? "Stop reading" : "Read rules aloud"}
+                                        >
+                                            {isSpeaking ? '⏹️ Stop' : '🔊 Read Rules'}
+                                        </button>
+                                    )}
                                 </div>
 
                                 {isEditing ? (
