@@ -56,10 +56,20 @@ export const usePartyData = () => {
             // Merge saved games with initial games to ensure new predefined games appear if we update code
             // But for now, we just trust the saved games if they exist, or fallback to initial
             if (parsed.games && parsed.games.length > 0) {
-                // Merge saved state (active status) with fresh content (rules, briefs)
+                // Merge saved state with initial games
                 const mergedGames = INITIAL_GAMES.map(initGame => {
                     const savedGame = parsed.games.find(g => g.id === initGame.id);
-                    return savedGame ? { ...initGame, active: savedGame.active, completed: savedGame.completed || false } : { ...initGame, completed: false };
+                    if (savedGame) {
+                        // Preserve saved data, but fill in any missing fields from initial game
+                        return {
+                            ...initGame,
+                            ...savedGame,
+                            // Ensure these exist even if not in saved data
+                            completed: savedGame.completed || false,
+                            active: savedGame.active !== undefined ? savedGame.active : initGame.active
+                        };
+                    }
+                    return { ...initGame, completed: false };
                 });
 
                 // Also retain any custom games the user added
