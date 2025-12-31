@@ -4,7 +4,7 @@ export const INITIAL_GAMES = [
     name: "Cup Knockdown",
     brief: "Test your aim and precision by knocking down a pyramid of cups with strategic throws.",
     rules: [
-      "Arrange 10 cups in a pyramid formation (4-3-2-1 structure)",
+      "15 cups are arranged in a pyramid formation",
       "Stand behind the designated throwing line",
       "You have 5 throws to knock down as many cups as possible",
       "Each cup knocked down earns points based on its position"
@@ -19,10 +19,10 @@ export const INITIAL_GAMES = [
     name: "Ping Pong Cup Toss",
     brief: "Master the art of precision tossing by landing ping pong balls into scored cups.",
     rules: [
-      "Cups are arranged with different point values (10, 20, 50 points)",
-      "Stand at the marked throwing line (approximately 6 feet away)",
+      "Cups are arranged with different point values",
+      "Stand at the marked throwing line",
       "Toss ping pong balls underhand into the cups",
-      "You have 3 attempts to score maximum points"
+      "You have 6 attempts to score maximum points"
     ],
     active: true,
     theme: "from-blue-400 to-indigo-400",
@@ -37,7 +37,7 @@ export const INITIAL_GAMES = [
       "Start with 15 plastic cups stacked in a single pile",
       "Build a 5-level pyramid (5-4-3-2-1 formation) as quickly as possible",
       "The pyramid must stand stable for 3 seconds to count",
-      "Time limit: 60 seconds. Faster completion earns bonus points"
+      "Time limit: 30 seconds. Faster completion earns bonus points"
     ],
     active: true,
     theme: "from-emerald-400 to-teal-500",
@@ -50,7 +50,6 @@ export const INITIAL_GAMES = [
     brief: "Balance and toss pencils into a cup using only your upper lip - no hands allowed!",
     rules: [
       "Place a pencil horizontally on your upper lip (no hands after setup)",
-      "Tilt your head back and flick the pencil into the air",
       "Land the pencil inside the cup placed in front of you",
       "You have 5 pencils to score as many points as possible"
     ],
