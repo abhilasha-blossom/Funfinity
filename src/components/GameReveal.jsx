@@ -196,18 +196,32 @@ const TeamDraft = ({ players, onComplete, onBack }) => {
                     {/* Central Spinner */}
                     <div style={{ zIndex: 20, textAlign: 'center' }}>
                         {stage === 'READY' ? (
-                            <button
-                                onClick={startDraft}
-                                style={{
-                                    fontSize: '2rem', padding: '1.5rem 5rem', borderRadius: '4px',
-                                    background: 'transparent', color: 'white',
-                                    border: '4px solid white', fontWeight: 900, letterSpacing: '2px',
-                                    cursor: 'pointer', boxShadow: '0 0 30px rgba(255,255,255,0.3)',
-                                    animation: 'pulse 1.5s infinite', textTransform: 'uppercase'
-                                }}
-                            >
-                                INITIATE DRAFT
-                            </button>
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2rem' }}>
+                                <button
+                                    onClick={() => setStage('SETUP')}
+                                    style={{
+                                        background: 'transparent', border: 'none', color: '#b2bec3',
+                                        fontSize: '1rem', cursor: 'pointer', fontWeight: 600,
+                                        display: 'flex', alignItems: 'center', gap: '0.5rem',
+                                        padding: '0.5rem 1rem', borderRadius: '20px',
+                                        border: '1px solid rgba(255,255,255,0.1)'
+                                    }}
+                                >
+                                    ← BACK TO SETUP
+                                </button>
+                                <button
+                                    onClick={startDraft}
+                                    style={{
+                                        fontSize: '2rem', padding: '1.5rem 5rem', borderRadius: '4px',
+                                        background: 'transparent', color: 'white',
+                                        border: '4px solid white', fontWeight: 900, letterSpacing: '2px',
+                                        cursor: 'pointer', boxShadow: '0 0 30px rgba(255,255,255,0.3)',
+                                        animation: 'pulse 1.5s infinite', textTransform: 'uppercase'
+                                    }}
+                                >
+                                    INITIATE DRAFT
+                                </button>
+                            </div>
                         ) : (
                             <div style={{ transform: 'scale(1.2)' }}>
                                 <div style={{ fontSize: '1.5rem', color: '#b2bec3', letterSpacing: '5px', marginBottom: '1rem' }}>RECRUITING FOR</div>
@@ -480,6 +494,28 @@ export function GameReveal({ game, players, updateScore, toggleGameComplete, upd
                     display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
                     fontFamily: "'Outfit', sans-serif"
                 }}>
+                    <button
+                        onClick={() => setStage('MODE_SELECT')}
+                        style={{
+                            position: 'absolute', top: '2rem', left: '2rem',
+                            background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)',
+                            borderRadius: '50px',
+                            padding: '0.8rem 1.5rem', fontWeight: 700, cursor: 'pointer',
+                            fontSize: '0.9rem', color: 'rgba(255,255,255,0.8)',
+                            zIndex: 100, display: 'flex', alignItems: 'center', gap: '8px',
+                            backdropFilter: 'blur(5px)', transition: 'all 0.2s'
+                        }}
+                        onMouseEnter={(e) => {
+                            e.target.style.background = 'rgba(255,255,255,0.2)';
+                            e.target.style.color = 'white';
+                        }}
+                        onMouseLeave={(e) => {
+                            e.target.style.background = 'rgba(255,255,255,0.1)';
+                            e.target.style.color = 'rgba(255,255,255,0.8)';
+                        }}
+                    >
+                        ← CHANGE MODE
+                    </button>
                     <div style={{ position: 'absolute', inset: 0, backgroundImage: 'radial-gradient(circle at center, rgba(108, 92, 231, 0.2) 0%, transparent 70%)', zIndex: 0 }} />
                     <h1 style={{ color: 'white', fontSize: '4rem', marginBottom: '2rem', zIndex: 10, textTransform: 'uppercase', letterSpacing: '10px', fontWeight: 900, textShadow: '0 0 20px rgba(255,255,255,0.5)' }}>
                         {generatedTeams.length === 2 && generatedTeams[0].length === 1 ? 'DUEL' : 'TEAM BATTLE'}
@@ -556,6 +592,7 @@ export function GameReveal({ game, players, updateScore, toggleGameComplete, upd
 
                         {/* Header Section */}
                         <div className="reveal-header" style={{ position: 'relative', background: game.completed ? 'linear-gradient(to right, #2ecc71, #27ae60)' : '' }}>
+                            {/* Close Button */}
                             <button onClick={onBack} style={{ position: 'absolute', top: '2rem', right: '2rem', background: 'rgba(0,0,0,0.1)', border: 'none', borderRadius: '50%', width: '40px', height: '40px', cursor: 'pointer', fontSize: '1.2rem', color: game.completed ? 'white' : '#636e72', zIndex: 10 }}>✕</button>
 
                             {/* Toggle Completed Status */}
@@ -754,7 +791,42 @@ export function GameReveal({ game, players, updateScore, toggleGameComplete, upd
                                 {(stage === 'GAME' || stage === 'RESULTS') && (
                                     <>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-                                            <h3 style={{ fontSize: '1.5rem' }}>{stage === 'RESULTS' ? 'Final Scoreboard' : 'Live Scoring'}</h3>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                                {stage === 'GAME' && (
+                                                    <button
+                                                        onClick={() => {
+                                                            playSound('click');
+                                                            setStage('INFO');
+                                                        }}
+                                                        style={{
+                                                            background: 'rgba(108, 92, 231, 0.1)',
+                                                            border: '2px solid #6c5ce7',
+                                                            borderRadius: '50px',
+                                                            padding: '0.5rem 1rem',
+                                                            cursor: 'pointer',
+                                                            fontSize: '0.85rem',
+                                                            fontWeight: 700,
+                                                            color: '#6c5ce7',
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            gap: '6px',
+                                                            transition: 'all 0.2s'
+                                                        }}
+                                                        onMouseEnter={(e) => {
+                                                            e.target.style.background = '#6c5ce7';
+                                                            e.target.style.color = 'white';
+                                                        }}
+                                                        onMouseLeave={(e) => {
+                                                            e.target.style.background = 'rgba(108, 92, 231, 0.1)';
+                                                            e.target.style.color = '#6c5ce7';
+                                                        }}
+                                                        title="Go back to game info"
+                                                    >
+                                                        ← Back
+                                                    </button>
+                                                )}
+                                                <h3 style={{ fontSize: '1.5rem' }}>{stage === 'RESULTS' ? 'Final Scoreboard' : 'Live Scoring'}</h3>
+                                            </div>
                                             {stage === 'RESULTS' && <button className="glass-btn" onClick={() => setStage('INFO')} style={{ fontSize: '0.8rem', padding: '0.5rem 1rem' }}>Back to Info</button>}
                                         </div>
 
