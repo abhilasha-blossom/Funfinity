@@ -257,6 +257,13 @@ export function GameReveal({ game, players, updateScore, toggleGameComplete, upd
     // Cute Modal State
     const [editingScore, setEditingScore] = useState(null);
 
+    // TIMER STATE
+    const [timerOpen, setTimerOpen] = useState(false);
+    const [timerDuration, setTimerDuration] = useState(60); // Seconds
+    const [timeLeft, setTimeLeft] = useState(60);
+    const [isTimerRunning, setIsTimerRunning] = useState(false);
+    const [timerFinished, setTimerFinished] = useState(false);
+
     // Constants
     const COLORS = ['#ff7675', '#74b9ff', '#55efc4', '#ffeaa7', '#a29bfe', '#fd79a8', '#00b894', '#fdcb6e'];
     const isTeamGame = game.type === 'TEAM';
@@ -413,6 +420,43 @@ export function GameReveal({ game, players, updateScore, toggleGameComplete, upd
         setIsEditing(false);
     };
 
+    // TIMER LOGIC
+    useEffect(() => {
+        let interval = null;
+        if (isTimerRunning && timeLeft > 0) {
+            interval = setInterval(() => {
+                setTimeLeft(prev => prev - 1);
+            }, 1000);
+        } else if (timeLeft === 0 && isTimerRunning) {
+            // Time's Up!
+            setIsTimerRunning(false);
+            setTimerFinished(true);
+            // Confetti or Sound could trigger here
+            setTimeout(() => {
+                setTimerOpen(false); // Close modal
+                setTimerFinished(false);
+                setStage('GAME'); // Go to scoring
+            }, 3000); // Show "Time's Up" for 3 seconds
+        }
+        return () => clearInterval(interval);
+    }, [isTimerRunning, timeLeft]);
+
+    const openTimerSetup = () => {
+        setTimeLeft(timerDuration);
+        setTimerFinished(false);
+        setTimerOpen(true);
+    };
+
+    const toggleTimer = () => {
+        setIsTimerRunning(!isTimerRunning);
+    };
+
+    const resetTimer = () => {
+        setIsTimerRunning(false);
+        setTimeLeft(timerDuration);
+        setTimerFinished(false);
+    };
+
     // Render Logic for different View States
     return (
         <>
@@ -444,7 +488,10 @@ export function GameReveal({ game, players, updateScore, toggleGameComplete, upd
                             </React.Fragment>
                         ))}
                     </div>
-                    <button onClick={startScoring} className="glass-btn" style={{ marginTop: '4rem', padding: '1.5rem 4rem', fontSize: '2rem', zIndex: 10, background: 'white', color: 'black', fontWeight: 900, border: 'none', boxShadow: '0 0 30px rgba(255,255,255,0.5)' }}>START MATCH ⚔️</button>
+                    <div style={{ display: 'flex', gap: '1rem', marginTop: '4rem', zIndex: 10 }}>
+                        <button onClick={openTimerSetup} className="glass-btn" style={{ padding: '1.5rem 3rem', fontSize: '2rem', background: 'rgba(255,255,255,0.1)', color: 'white', fontWeight: 900, border: '2px solid rgba(255,255,255,0.3)' }}>⏱️ TIMER</button>
+                        <button onClick={startScoring} className="glass-btn" style={{ padding: '1.5rem 4rem', fontSize: '2rem', background: 'white', color: 'black', fontWeight: 900, border: 'none', boxShadow: '0 0 30px rgba(255,255,255,0.5)' }}>START MATCH ⚔️</button>
+                    </div>
                     <style>{`@keyframes slideRight { from { transform: translateX(-100px); opacity: 0; } to { transform: translateX(0); opacity: 1; } } @keyframes slideLeft { from { transform: translateX(100px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }`}</style>
                 </div>
             )}
@@ -462,7 +509,10 @@ export function GameReveal({ game, players, updateScore, toggleGameComplete, upd
                         <input type="number" autoFocus className="glass-input" style={{ width: '300px', height: '120px', fontSize: '5rem', textAlign: 'center', borderRadius: '30px', border: '4px solid #6c5ce7', color: 'white', background: 'rgba(255,255,255,0.1)', fontWeight: 700 }} placeholder="0" value={localScores[activePlayer.id] || ''} onChange={(e) => handleScoreChange(activePlayer.id, e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') handleNextPlayer(); }} />
                         <div style={{ fontSize: '1.2rem', color: '#b2bec3' }}>Enter Points & Press Enter</div>
                     </div>
-                    <button className="glass-btn" onClick={handleNextPlayer} style={{ marginTop: '4rem', padding: '1.5rem 5rem', fontSize: '2rem', background: 'white', color: 'black', fontWeight: 900 }}>NEXT PLAYER ➡</button>
+                    <div style={{ marginTop: '4rem', display: 'flex', gap: '1rem' }}>
+                        <button onClick={openTimerSetup} className="glass-btn" style={{ padding: '1.5rem 2rem', fontSize: '2rem', background: 'rgba(255,255,255,0.1)', color: 'white', border: '2px solid rgba(255,255,255,0.3)' }}>⏱️</button>
+                        <button className="glass-btn" onClick={handleNextPlayer} style={{ padding: '1.5rem 5rem', fontSize: '2rem', background: 'white', color: 'black', fontWeight: 900 }}>NEXT PLAYER ➡</button>
+                    </div>
                 </div>
             )}
 
@@ -685,6 +735,54 @@ export function GameReveal({ game, players, updateScore, toggleGameComplete, upd
                             </div>
                         </div>
                     </div>
+                </div>
+            )}
+
+            {/* TIMER OVERLAY */}
+            {timerOpen && (
+                <div style={{
+                    position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
+                    background: 'rgba(0,0,0,0.95)', zIndex: 4000,
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                    backdropFilter: 'blur(10px)'
+                }}>
+                    <button onClick={() => setTimerOpen(false)} style={{ position: 'absolute', top: '2rem', right: '2rem', background: 'none', border: 'none', color: 'white', fontSize: '2rem', cursor: 'pointer' }}>✕</button>
+
+                    {timerFinished ? (
+                        <div style={{ animation: 'pop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)' }}>
+                            <div style={{ fontSize: '8rem', marginBottom: '1rem', textShadow: '0 0 50px #ff7675' }}>⏰</div>
+                            <h1 style={{ fontSize: '6rem', color: '#ff7675', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '5px' }}>TIME'S UP!</h1>
+                        </div>
+                    ) : (
+                        <>
+                            {/* Setup Controls (Only when paused and not started?) - Actually let's just allow quick adjust if paused */}
+                            {!isTimerRunning && timeLeft === timerDuration && (
+                                <div style={{ marginBottom: '3rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                    <button onClick={() => { setTimerDuration(prev => Math.max(10, prev - 10)); setTimeLeft(prev => Math.max(10, prev - 10)); }} style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', fontSize: '1.5rem', width: '50px', height: '50px', borderRadius: '50%', cursor: 'pointer' }}>-</button>
+                                    <div style={{ fontSize: '2rem', color: '#b2bec3', fontWeight: 600 }}>{timerDuration}s</div>
+                                    <button onClick={() => { setTimerDuration(prev => prev + 10); setTimeLeft(prev => prev + 10); }} style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', fontSize: '1.5rem', width: '50px', height: '50px', borderRadius: '50%', cursor: 'pointer' }}>+</button>
+                                </div>
+                            )}
+
+                            <div style={{
+                                fontSize: '12rem', fontWeight: 900,
+                                color: timeLeft <= 10 ? '#ff7675' : 'white',
+                                fontVariantNumeric: 'tabular-nums',
+                                textShadow: isTimerRunning ? '0 0 30px rgba(255,255,255,0.2)' : 'none',
+                                animation: (timeLeft <= 10 && isTimerRunning) ? 'pulse 1s infinite' : 'none',
+                                marginBottom: '4rem'
+                            }}>
+                                {timeLeft}
+                            </div>
+
+                            <div style={{ display: 'flex', gap: '2rem' }}>
+                                <button onClick={resetTimer} style={{ width: '80px', height: '80px', borderRadius: '50%', background: '#636e72', border: 'none', fontSize: '2rem', cursor: 'pointer', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>↺</button>
+                                <button onClick={toggleTimer} style={{ width: '120px', height: '120px', borderRadius: '50%', background: isTimerRunning ? '#ffeaa7' : '#2ecc71', border: 'none', fontSize: '3rem', cursor: 'pointer', color: isTimerRunning ? 'black' : 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: isTimerRunning ? '0 0 30px #ffeaa7' : '0 0 30px #2ecc71' }}>
+                                    {isTimerRunning ? '⏸' : '▶'}
+                                </button>
+                            </div>
+                        </>
+                    )}
                 </div>
             )}
 
