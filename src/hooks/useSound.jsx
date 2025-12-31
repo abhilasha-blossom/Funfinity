@@ -10,7 +10,7 @@ const SOUNDS = {
     success: '/success.mp3',
     win: 'https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3',
     tick: '/tick.mp3',
-    alarm: '/alarm.mp3',
+    alarm: 'https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3', // Alarm clock buzzer ring
     eraser: 'https://assets.mixkit.co/active_storage/sfx/2573/2573-preview.mp3',
     cheer: '/cheer.mp3',
     bgm: '/bgm.mp3',

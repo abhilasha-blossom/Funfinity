@@ -798,12 +798,66 @@ export function GameReveal({ game, players, updateScore, toggleGameComplete, upd
                     display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
                     backdropFilter: 'blur(10px)'
                 }}>
-                    <button onClick={() => setTimerOpen(false)} style={{ position: 'absolute', top: '2rem', right: '2rem', background: 'none', border: 'none', color: 'white', fontSize: '2rem', cursor: 'pointer' }}>✕</button>
+                    <button onClick={() => setTimerOpen(false)} style={{ position: 'absolute', top: '2rem', right: '2rem', background: 'none', border: 'none', color: 'white', fontSize: '2rem', cursor: 'pointer', zIndex: 10 }}>✕</button>
 
                     {timerFinished ? (
-                        <div style={{ animation: 'pop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)' }}>
-                            <div style={{ fontSize: '8rem', marginBottom: '1rem', textShadow: '0 0 50px #ff7675' }}>⏰</div>
-                            <h1 style={{ fontSize: '6rem', color: '#ff7675', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '5px' }}>TIME'S UP!</h1>
+                        <div style={{
+                            position: 'relative',
+                            zIndex: 5,
+                            textAlign: 'center'
+                        }}>
+                            {/* Alarm Clock Ringing */}
+                            <div style={{
+                                fontSize: '15rem',
+                                marginBottom: '2rem',
+                                animation: 'alarmShake 0.1s ease-in-out infinite',
+                                filter: 'drop-shadow(0 10px 30px rgba(255,193,7,0.5))',
+                                position: 'relative'
+                            }}>
+                                ⏰
+                                {/* Ringing Bells */}
+                                <div style={{
+                                    position: 'absolute',
+                                    top: '-20px',
+                                    left: '-40px',
+                                    fontSize: '4rem',
+                                    animation: 'ringLeft 0.15s ease-in-out infinite'
+                                }}>🔔</div>
+                                <div style={{
+                                    position: 'absolute',
+                                    top: '-20px',
+                                    right: '-40px',
+                                    fontSize: '4rem',
+                                    animation: 'ringRight 0.15s ease-in-out infinite'
+                                }}>🔔</div>
+                            </div>
+
+                            <h1 style={{
+                                fontSize: '6rem',
+                                color: '#ffc107',
+                                fontWeight: 900,
+                                textTransform: 'uppercase',
+                                letterSpacing: '10px',
+                                textShadow: `
+                                    0 0 20px rgba(255,193,7,0.8),
+                                    0 0 40px rgba(255,193,7,0.6),
+                                    0 5px 10px rgba(0,0,0,0.3)
+                                `,
+                                animation: 'textVibrate 0.1s ease-in-out infinite',
+                                marginBottom: '1rem'
+                            }}>TIME'S UP!</h1>
+
+                            <div style={{
+                                fontSize: '2rem',
+                                color: '#ffeb3b',
+                                fontWeight: 700,
+                                letterSpacing: '5px',
+                                textTransform: 'uppercase',
+                                animation: 'blink 0.5s ease-in-out infinite',
+                                textShadow: '0 0 10px rgba(255,235,59,0.8)'
+                            }}>
+                                ⏱️ WAKE UP! ⏱️
+                            </div>
                         </div>
                     ) : (
                         <>
@@ -835,6 +889,40 @@ export function GameReveal({ game, players, updateScore, toggleGameComplete, upd
                             </div>
                         </>
                     )}
+
+                    {/* Alarm Clock Animations */}
+                    <style>{`
+                        @keyframes alarmShake {
+                            0% { transform: rotate(-5deg); }
+                            25% { transform: rotate(5deg); }
+                            50% { transform: rotate(-5deg); }
+                            75% { transform: rotate(5deg); }
+                            100% { transform: rotate(-5deg); }
+                        }
+                        
+                        @keyframes ringLeft {
+                            0%, 100% { transform: rotate(-20deg) translateY(0); }
+                            50% { transform: rotate(-30deg) translateY(-5px); }
+                        }
+                        
+                        @keyframes ringRight {
+                            0%, 100% { transform: rotate(20deg) translateY(0); }
+                            50% { transform: rotate(30deg) translateY(-5px); }
+                        }
+                        
+                        @keyframes textVibrate {
+                            0% { transform: translate(0, 0); }
+                            25% { transform: translate(-2px, -2px); }
+                            50% { transform: translate(2px, 2px); }
+                            75% { transform: translate(-2px, 2px); }
+                            100% { transform: translate(2px, -2px); }
+                        }
+                        
+                        @keyframes blink {
+                            0%, 100% { opacity: 1; }
+                            50% { opacity: 0.3; }
+                        }
+                    `}</style>
                 </div>
             )}
 
