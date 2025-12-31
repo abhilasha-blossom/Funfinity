@@ -441,13 +441,19 @@ export function GameReveal({ game, players, updateScore, toggleGameComplete, upd
     };
 
     // TIMER LOGIC
+    // Sound Effect for Timer
+    useEffect(() => {
+        if (isTimerRunning && timeLeft > 0) {
+            playSound('tick');
+        }
+    }, [timeLeft, isTimerRunning]);
+
+    // TIMER INTERVAL LOGIC
     useEffect(() => {
         let interval = null;
         if (isTimerRunning && timeLeft > 0) {
             interval = setInterval(() => {
                 setTimeLeft(prev => prev - 1);
-                // Optional tick sound every second (might be too much, let's do last 10s)
-                // if (timeLeft <= 10) playSound('tick'); // Cannot access state inside interval easily without ref
             }, 1000);
         } else if (timeLeft === 0 && isTimerRunning) {
             // Time's Up!
