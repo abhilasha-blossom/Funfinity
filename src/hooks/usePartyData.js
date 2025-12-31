@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { INITIAL_GAMES } from '../data/initialGames';
 
-const STORAGE_KEY = 'party_app_data_v1';
+const STORAGE_KEY = 'party_app_data_v2';
 
 const DEFAULT_PLAYERS = [
     "Arnav", "Mohit", "Sagar", "Yashraj", "Harsh",

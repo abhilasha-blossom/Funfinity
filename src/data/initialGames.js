@@ -2,14 +2,13 @@ export const INITIAL_GAMES = [
   {
     id: 1,
     name: "Cup Knockdown",
-    brief: "Individual players try to score by knocking down the cups stacked like a pyramid.",
+    brief: "Test your aim and precision by knocking down a pyramid of cups with strategic throws.",
     rules: [
-      "Stack cups in a pyramid formation.",
-      "Players get a set number of throws.",
-      "Knock down as many cups as possible.",
-      "Score is based on the number of cups down."
+      "Arrange 10 cups in a pyramid formation (4-3-2-1 structure)",
+      "Stand behind the designated throwing line",
+      "You have 5 throws to knock down as many cups as possible",
+      "Each cup knocked down earns points based on its position"
     ],
-    scoring: "10 Points per cup knocked down. +50 Bonus for clearing all.",
     active: true,
     theme: "from-orange-400 to-red-400",
     icon: "🎯",
@@ -18,14 +17,13 @@ export const INITIAL_GAMES = [
   {
     id: 2,
     name: "Ping Pong Cup Toss",
-    brief: "Individual players try to toss the ball into the cups marked with different scores.",
+    brief: "Master the art of precision tossing by landing ping pong balls into scored cups.",
     rules: [
-      "Cups are marked with scores (e.g., 10, 20, 50).",
-      "Stand at the marked line.",
-      "Toss the ball into the cups.",
-      "You have 3 Chances."
+      "Cups are arranged with different point values (10, 20, 50 points)",
+      "Stand at the marked throwing line (approximately 6 feet away)",
+      "Toss ping pong balls underhand into the cups",
+      "You have 3 attempts to score maximum points"
     ],
-    scoring: "Points equal to the value written on the cup (10/20/50).",
     active: true,
     theme: "from-blue-400 to-indigo-400",
     icon: "🏓",
@@ -34,14 +32,13 @@ export const INITIAL_GAMES = [
   {
     id: 3,
     name: "Cup Pyramid Challenge",
-    brief: "Individual Players try to build a pyramid out of cups against time.",
+    brief: "Race against time to build a perfect cup pyramid with speed and stability.",
     rules: [
-      "Start with a stack of 10-15 cups.",
-      "Build a stable pyramid as fast as possible.",
-      "Pyramid must stand for 3 seconds.",
-      "Time limit: 1 Minute."
+      "Start with 15 plastic cups stacked in a single pile",
+      "Build a 5-level pyramid (5-4-3-2-1 formation) as quickly as possible",
+      "The pyramid must stand stable for 3 seconds to count",
+      "Time limit: 60 seconds. Faster completion earns bonus points"
     ],
-    scoring: "50 Points for completing under 30s. 30 Points -> under 45s. 10 Points -> under 60s.",
     active: true,
     theme: "from-emerald-400 to-teal-500",
     icon: "🏗️",
@@ -49,15 +46,14 @@ export const INITIAL_GAMES = [
   },
   {
     id: 4,
-    name: "Toss Pencil into the Cup",
-    brief: "Hold pencil with upper lip and toss into the cup.",
+    name: "Pencil Toss Challenge",
+    brief: "Balance and toss pencils into a cup using only your upper lip - no hands allowed!",
     rules: [
-      "Hold the pencil using ONLY your upper lip.",
-      "No hands allowed.",
-      "Toss them into the cup one by one.",
-      "Score based on number of successful tosses."
+      "Place a pencil horizontally on your upper lip (no hands after setup)",
+      "Tilt your head back and flick the pencil into the air",
+      "Land the pencil inside the cup placed in front of you",
+      "You have 5 pencils to score as many points as possible"
     ],
-    scoring: "20 Points per pencil that lands inside.",
     active: true,
     theme: "from-violet-400 to-purple-500",
     icon: "✏️",
@@ -65,14 +61,14 @@ export const INITIAL_GAMES = [
   },
   {
     id: 5,
-    name: "Memory Game",
-    brief: "List of 10 items to memorize and recall.",
+    name: "Memory Master",
+    brief: "Challenge your memory by recalling a list of 10 random items in the correct order.",
     rules: [
-      "Observe the list of 10 items for 30 seconds.",
-      "Recall them in the correct order (if required).",
-      "Write down or say the items."
+      "A list of 10 random items will be displayed for 30 seconds",
+      "Memorize the items and their exact order",
+      "After the timer ends, write down or verbally recall all items",
+      "Order matters - items must be recalled in the correct sequence"
     ],
-    scoring: "10 Points per correct item.",
     active: true,
     theme: "from-yellow-400 to-amber-500",
     icon: "🧠",
@@ -80,15 +76,14 @@ export const INITIAL_GAMES = [
   },
   {
     id: 6,
-    name: "Guess the order of toffees",
-    brief: "5 players in each team try to arrange the toffees one by one.",
+    name: "Toffee Sequence Puzzle",
+    brief: "Work as a team to identify and arrange different toffees in the correct sequence.",
     rules: [
-      "Team Game: 5 players per team.",
-      "Taste/Identify the toffees.",
-      "Arrange them in the correct sequence.",
-      "Work together to solve the order."
+      "Team of 5 players receives a set of mixed toffees",
+      "Each player tastes and identifies their assigned toffee",
+      "Collaborate to determine the correct arrangement sequence",
+      "Arrange all toffees in the specified order within the time limit"
     ],
-    scoring: "50 Points for fully correct sequence. -5 per mistake.",
     active: true,
     theme: "from-stone-400 to-stone-600",
     icon: "🍬",
@@ -97,14 +92,13 @@ export const INITIAL_GAMES = [
   {
     id: 7,
     name: "Balance the Ball",
-    brief: "5 player in each team balance the ball holding the ball using pen.",
+    brief: "Coordinate with your team to balance a ball using only pens - teamwork is key!",
     rules: [
-      "Team Game: 5 players per team.",
-      "Each player holds a pen.",
-      "Balance the ball together using the pens.",
-      "Don't let it drop."
+      "Team of 5 players, each holding a pen horizontally",
+      "Place a ball on top of the pens held by all team members",
+      "Work together to keep the ball balanced without dropping it",
+      "Hold the balance for as long as possible to maximize points"
     ],
-    scoring: "10 Points for every 10 seconds balanced. Max 100.",
     active: true,
     theme: "from-rose-400 to-pink-500",
     icon: "⚖️",
@@ -112,15 +106,14 @@ export const INITIAL_GAMES = [
   },
   {
     id: 8,
-    name: "Sip the Nips",
-    brief: "2 players in each team. Pick gems with a straw.",
+    name: "Straw Gem Collector",
+    brief: "Use suction power to transfer gems from bowl to cup using only a straw.",
     rules: [
-      "Team Game: 2 players per team.",
-      "Use a straw to suck up gems from a bowl.",
-      "Drop them into your cup.",
-      "No hands allowed."
+      "Team of 2 players with one straw each",
+      "Suck up small gems from a bowl using the straw",
+      "Transfer and drop them into your team's cup",
+      "No hands allowed - use only the straw's suction power"
     ],
-    scoring: "5 Points per gem collected within the time limit.",
     active: true,
     theme: "from-cyan-400 to-sky-500",
     icon: "🥤",
@@ -128,15 +121,14 @@ export const INITIAL_GAMES = [
   },
   {
     id: 9,
-    name: "Act the word from the Random Box",
-    brief: "2 players in each team. Act and guess.",
+    name: "Charades Challenge",
+    brief: "Act out mystery words while your teammate guesses - no speaking allowed!",
     rules: [
-      "Team Game: 2 players per team.",
-      "One player acts out a word from the box.",
-      "The other player tries to guess it.",
-      "No speaking allowed."
+      "Team of 2 players: one actor and one guesser",
+      "Actor picks a random word from the mystery box",
+      "Act out the word using only gestures and body language",
+      "Guesser has unlimited attempts within the time limit to guess correctly"
     ],
-    scoring: "20 Points per correct guess.",
     active: true,
     theme: "from-fuchsia-400 to-pink-600",
     icon: "🎭",
@@ -145,14 +137,13 @@ export const INITIAL_GAMES = [
   {
     id: 10,
     name: "Quiz Rapid Fire",
-    brief: "5 random players in each team. Rapid fire questions.",
+    brief: "Answer rapid-fire trivia questions as a team to rack up points quickly.",
     rules: [
-      "Team Game: 5 players per team.",
-      "Rapid fire questions asked to the team.",
-      "Answer quickly.",
-      "Score distributed among them."
+      "Team of 5 players working together",
+      "Host fires quick trivia questions one after another",
+      "Team discusses and provides answers as fast as possible",
+      "Points are distributed equally among all team members"
     ],
-    scoring: "10 Points per correct answer.",
     active: true,
     theme: "from-indigo-400 to-blue-600",
     icon: "⚡",
