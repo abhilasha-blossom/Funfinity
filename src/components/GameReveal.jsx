@@ -280,8 +280,10 @@ export function GameReveal({ game, players, updateScore, toggleGameComplete, upd
 
     // TIMER STATE
     const [timerOpen, setTimerOpen] = useState(false);
+    const [timerMode, setTimerMode] = useState('COUNTDOWN'); // 'COUNTDOWN' or 'STOPWATCH'
     const [timerDuration, setTimerDuration] = useState(60); // Seconds
     const [timeLeft, setTimeLeft] = useState(60);
+    const [stopwatchTime, setStopwatchTime] = useState(0);
     const [isTimerRunning, setIsTimerRunning] = useState(false);
     const [timerFinished, setTimerFinished] = useState(false);
 
@@ -442,39 +444,50 @@ export function GameReveal({ game, players, updateScore, toggleGameComplete, upd
     };
 
     // TIMER LOGIC
-    // Sound Effect for Timer
+    // Sound Effect for Timer (Tick Tock)
     useEffect(() => {
-        if (isTimerRunning && timeLeft > 0) {
-            playSound('tick');
+        if (isTimerRunning) {
+            if (timerMode === 'COUNTDOWN' && timeLeft > 0) {
+                playSound('tick');
+            }
+            // Optional: Tick for stopwatch too? Maybe less annoying if silent or softer
         }
-    }, [timeLeft, isTimerRunning]);
+    }, [timeLeft, stopwatchTime, isTimerRunning, timerMode]);
 
     // TIMER INTERVAL LOGIC
     useEffect(() => {
         let interval = null;
-        if (isTimerRunning && timeLeft > 0) {
+        if (isTimerRunning) {
             interval = setInterval(() => {
-                setTimeLeft(prev => prev - 1);
+                if (timerMode === 'COUNTDOWN') {
+                    if (timeLeft > 0) {
+                        setTimeLeft(prev => prev - 1);
+                    } else {
+                        // Time's Up!
+                        setIsTimerRunning(false);
+                        setTimerFinished(true);
+                        playSound('alarm');
+                        setTimeout(() => {
+                            setTimerOpen(false); // Close modal
+                            setTimerFinished(false);
+                            setStage('GAME'); // Go to scoring
+                        }, 3000); // Show "Time's Up" for 3 seconds
+                    }
+                } else {
+                    // STOPWATCH MODE
+                    setStopwatchTime(prev => prev + 1);
+                }
             }, 1000);
-        } else if (timeLeft === 0 && isTimerRunning) {
-            // Time's Up!
-            setIsTimerRunning(false);
-            setTimerFinished(true);
-            playSound('alarm');
-            // Confetti or Sound could trigger here
-            setTimeout(() => {
-                setTimerOpen(false); // Close modal
-                setTimerFinished(false);
-                setStage('GAME'); // Go to scoring
-            }, 3000); // Show "Time's Up" for 3 seconds
         }
         return () => clearInterval(interval);
-    }, [isTimerRunning, timeLeft]);
+    }, [isTimerRunning, timeLeft, timerMode]);
 
     const openTimerSetup = () => {
         playSound('click');
         setTimeLeft(timerDuration);
+        setStopwatchTime(0);
         setTimerFinished(false);
+        setIsTimerRunning(false);
         setTimerOpen(true);
     };
 
@@ -486,8 +499,19 @@ export function GameReveal({ game, players, updateScore, toggleGameComplete, upd
     const resetTimer = () => {
         playSound('click');
         setIsTimerRunning(false);
-        setTimeLeft(timerDuration);
-        setTimerFinished(false);
+        if (timerMode === 'COUNTDOWN') {
+            setTimeLeft(timerDuration);
+            setTimerFinished(false);
+        } else {
+            setStopwatchTime(0);
+        }
+    };
+
+    const formatTime = (seconds) => {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        if (mins > 0) return `${mins}:${secs.toString().padStart(2, '0')}`;
+        return secs;
     };
 
     // Render Logic for different View States
@@ -1011,8 +1035,36 @@ export function GameReveal({ game, players, updateScore, toggleGameComplete, upd
                         </div>
                     ) : (
                         <>
-                            {/* Setup Controls (Only when paused and not started?) - Actually let's just allow quick adjust if paused */}
-                            {!isTimerRunning && timeLeft === timerDuration && (
+                            {/* Mode Toggle */}
+                            {!isTimerRunning && !timerFinished && (
+                                <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', background: 'rgba(255,255,255,0.1)', padding: '5px', borderRadius: '50px' }}>
+                                    <button
+                                        onClick={() => setTimerMode('COUNTDOWN')}
+                                        style={{
+                                            padding: '0.5rem 1.5rem', borderRadius: '50px', border: 'none',
+                                            background: timerMode === 'COUNTDOWN' ? 'white' : 'transparent',
+                                            color: timerMode === 'COUNTDOWN' ? 'black' : 'rgba(255,255,255,0.5)',
+                                            fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s'
+                                        }}
+                                    >
+                                        ⏳ TIMER
+                                    </button>
+                                    <button
+                                        onClick={() => setTimerMode('STOPWATCH')}
+                                        style={{
+                                            padding: '0.5rem 1.5rem', borderRadius: '50px', border: 'none',
+                                            background: timerMode === 'STOPWATCH' ? 'white' : 'transparent',
+                                            color: timerMode === 'STOPWATCH' ? 'black' : 'rgba(255,255,255,0.5)',
+                                            fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s'
+                                        }}
+                                    >
+                                        ⏱️ STOPWATCH
+                                    </button>
+                                </div>
+                            )}
+
+                            {/* Setup Controls (Only when paused and Countdown) */}
+                            {!isTimerRunning && timerMode === 'COUNTDOWN' && timeLeft === timerDuration && (
                                 <div style={{ marginBottom: '3rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
                                     <button onClick={() => { setTimerDuration(prev => Math.max(10, prev - 10)); setTimeLeft(prev => Math.max(10, prev - 10)); }} style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', fontSize: '1.5rem', width: '50px', height: '50px', borderRadius: '50%', cursor: 'pointer' }}>-</button>
                                     <div style={{ fontSize: '2rem', color: '#b2bec3', fontWeight: 600 }}>{timerDuration}s</div>
@@ -1022,13 +1074,13 @@ export function GameReveal({ game, players, updateScore, toggleGameComplete, upd
 
                             <div style={{
                                 fontSize: '12rem', fontWeight: 900,
-                                color: timeLeft <= 10 ? '#ff7675' : 'white',
+                                color: (timerMode === 'COUNTDOWN' && timeLeft <= 10) ? '#ff7675' : 'white',
                                 fontVariantNumeric: 'tabular-nums',
                                 textShadow: isTimerRunning ? '0 0 30px rgba(255,255,255,0.2)' : 'none',
-                                animation: (timeLeft <= 10 && isTimerRunning) ? 'pulse 1s infinite' : 'none',
+                                animation: (timerMode === 'COUNTDOWN' && timeLeft <= 10 && isTimerRunning) ? 'pulse 1s infinite' : 'none',
                                 marginBottom: '4rem'
                             }}>
-                                {timeLeft}
+                                {timerMode === 'COUNTDOWN' ? formatTime(timeLeft) : formatTime(stopwatchTime)}
                             </div>
 
                             <div style={{ display: 'flex', gap: '2rem' }}>
