@@ -9,7 +9,7 @@ const SOUNDS = {
     open: 'https://assets.mixkit.co/active_storage/sfx/2044/2044-preview.mp3',
     success: '/success.mp3',
     win: 'https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3',
-    tick: 'https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3', // Soft pop for tick (less annoying)
+    tick: 'https://assets.mixkit.co/active_storage/sfx/2569/2569-preview.mp3', // Wall clock ticking (clean and sharp)
     alarm: 'https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3', // Alarm clock buzzer ring
     eraser: 'https://assets.mixkit.co/active_storage/sfx/2573/2573-preview.mp3',
     cheer: '/cheer.mp3',
