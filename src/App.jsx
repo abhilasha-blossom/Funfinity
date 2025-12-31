@@ -197,6 +197,8 @@ const SoundToggle = () => {
   );
 };
 
+
+
 function App() {
   const { players, games, addPlayer, removePlayer, updatePlayerAvatar, updateScore, toggleGameActive, toggleGameComplete, updateGame, addCustomGame, deleteGame, resetAllData, resetScores, isLoaded } = usePartyData();
   const [view, setView] = useState('LANDING');

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import confetti from 'canvas-confetti';
+import { useSound } from '../hooks/useSound.jsx';
 
 export function Podium({ players, onBack }) {
     const calculateTotalScore = (player) => {
@@ -12,12 +13,16 @@ export function Podium({ players, onBack }) {
     const sortedPlayers = [...players].sort((a, b) => calculateTotalScore(b) - calculateTotalScore(a));
     const winner = sortedPlayers[0];
     const runnerUp = sortedPlayers[1];
+    const { playSound } = useSound();
 
     useEffect(() => {
+        // Play Cheer Sound
+        playSound('cheer');
+
         // Trigger confetti burst on load
-        const duration = 3000;
+        const duration = 5000; // Increased duration
         const animationEnd = Date.now() + duration;
-        const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+        const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 3000 };
 
         const randomInRange = (min, max) => Math.random() * (max - min) + min;
 

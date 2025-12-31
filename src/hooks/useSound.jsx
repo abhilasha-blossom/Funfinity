@@ -12,6 +12,10 @@ const SOUNDS = {
     tick: 'https://assets.mixkit.co/active_storage/sfx/2572/2572-preview.mp3', // Tick
     alarm: 'https://assets.mixkit.co/active_storage/sfx/951/951-preview.mp3', // Alarm
     eraser: 'https://assets.mixkit.co/active_storage/sfx/2573/2573-preview.mp3', // Soft scratch
+    cheer: 'https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3', // Crowd applause
+    cheer: 'https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3', // Crowd applause
+    // Using local file in public folder for reliability
+    bgm: '/bgm.mp3',
 };
 
 export const SoundProvider = ({ children }) => {
@@ -30,13 +34,37 @@ export const SoundProvider = ({ children }) => {
     useEffect(() => {
         Object.entries(SOUNDS).forEach(([key, url]) => {
             const audio = new Audio(url);
-            audio.volume = 0.4; // Default volume
+            audio.volume = key === 'bgm' ? 0.3 : 0.4;
+            if (key === 'bgm') {
+                audio.loop = true;
+                audio.addEventListener('error', (e) => console.error("Error loading BGM:", e));
+            }
             audioRefs.current[key] = audio;
         });
     }, []);
 
+    // Handle BGM State
+    useEffect(() => {
+        const bgm = audioRefs.current['bgm'];
+        if (!bgm) return;
+
+        if (!isSoundOn) {
+            bgm.pause();
+        } else if (bgm.paused && bgm.currentTime > 0) {
+            // Resume if it was playing before
+            bgm.play().catch(() => { });
+        }
+    }, [isSoundOn]);
+
     const playSound = (soundKey) => {
         if (!isSoundOn) return;
+
+        // Piggyback: Try to start BGM on any sound interaction
+        const bgm = audioRefs.current['bgm'];
+        if (bgm && bgm.paused) {
+            bgm.play().catch(e => console.log("BGM Start Failed", e));
+        }
+
         const audio = audioRefs.current[soundKey];
         if (audio) {
             audio.currentTime = 0; // Reset to start
@@ -44,7 +72,9 @@ export const SoundProvider = ({ children }) => {
         }
     };
 
-    const toggleSound = () => setIsSoundOn(prev => !prev);
+    const toggleSound = () => {
+        setIsSoundOn(prev => !prev);
+    };
 
     return (
         <SoundContext.Provider value={{ isSoundOn, toggleSound, playSound }}>
