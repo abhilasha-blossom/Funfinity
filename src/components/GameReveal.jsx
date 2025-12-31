@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useSound } from '../hooks/useSound.jsx';
 
 // Multi-Team "Battle Royale" Draft Component
 const TeamDraft = ({ players, onComplete, onBack }) => {
@@ -257,6 +258,9 @@ export function GameReveal({ game, players, updateScore, toggleGameComplete, upd
     // Cute Modal State
     const [editingScore, setEditingScore] = useState(null);
 
+    // Sound Hook
+    const { playSound } = useSound();
+
     // TIMER STATE
     const [timerOpen, setTimerOpen] = useState(false);
     const [timerDuration, setTimerDuration] = useState(60); // Seconds
@@ -426,11 +430,14 @@ export function GameReveal({ game, players, updateScore, toggleGameComplete, upd
         if (isTimerRunning && timeLeft > 0) {
             interval = setInterval(() => {
                 setTimeLeft(prev => prev - 1);
+                // Optional tick sound every second (might be too much, let's do last 10s)
+                // if (timeLeft <= 10) playSound('tick'); // Cannot access state inside interval easily without ref
             }, 1000);
         } else if (timeLeft === 0 && isTimerRunning) {
             // Time's Up!
             setIsTimerRunning(false);
             setTimerFinished(true);
+            playSound('alarm');
             // Confetti or Sound could trigger here
             setTimeout(() => {
                 setTimerOpen(false); // Close modal
@@ -442,16 +449,19 @@ export function GameReveal({ game, players, updateScore, toggleGameComplete, upd
     }, [isTimerRunning, timeLeft]);
 
     const openTimerSetup = () => {
+        playSound('click');
         setTimeLeft(timerDuration);
         setTimerFinished(false);
         setTimerOpen(true);
     };
 
     const toggleTimer = () => {
+        playSound('click');
         setIsTimerRunning(!isTimerRunning);
     };
 
     const resetTimer = () => {
+        playSound('click');
         setIsTimerRunning(false);
         setTimeLeft(timerDuration);
         setTimerFinished(false);
@@ -547,7 +557,7 @@ export function GameReveal({ game, players, updateScore, toggleGameComplete, upd
                             <button onClick={onBack} style={{ position: 'absolute', top: '2rem', right: '2rem', background: 'rgba(0,0,0,0.1)', border: 'none', borderRadius: '50%', width: '40px', height: '40px', cursor: 'pointer', fontSize: '1.2rem', color: game.completed ? 'white' : '#636e72', zIndex: 10 }}>✕</button>
 
                             {/* Toggle Completed Status */}
-                            <button onClick={() => toggleGameComplete(game.id)} style={{ position: 'absolute', top: '2rem', left: '2rem', background: 'rgba(255,255,255,0.2)', border: '1px solid rgba(255,255,255,0.4)', borderRadius: '20px', padding: '0.5rem 1rem', fontSize: '0.9rem', color: game.completed ? 'white' : '#636e72', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                            <button onClick={() => { playSound('success'); toggleGameComplete(game.id); }} style={{ position: 'absolute', top: '2rem', left: '2rem', background: 'rgba(255,255,255,0.2)', border: '1px solid rgba(255,255,255,0.4)', borderRadius: '20px', padding: '0.5rem 1rem', fontSize: '0.9rem', color: game.completed ? 'white' : '#636e72', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}>
                                 {game.completed ? '✓ COMPLETED' : '⭕ IN PROGRESS'}
                             </button>
 

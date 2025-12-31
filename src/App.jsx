@@ -6,15 +6,18 @@ import { Leaderboard } from './components/Leaderboard';
 import { GameManager } from './components/GameManager';
 import { HomeHero } from './components/HomeHero';
 import { Podium } from './components/Podium';
+import { SoundProvider, useSound } from './hooks/useSound.jsx';
 
 // GameZone Card with 3D Sticker Icon
 const GameZoneCard = ({ game, onClick, onRemove }) => {
   const isCompleted = game.completed;
+  const { playSound } = useSound();
 
   return (
     <div
       className="glass-card"
-      onClick={onClick}
+      onClick={() => { playSound('click'); playSound('open'); onClick(); }}
+      onMouseEnter={() => playSound('hover')}
       style={{
         display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
         minHeight: '280px', textAlign: 'center', cursor: 'pointer',
@@ -185,6 +188,15 @@ const CuteAlert = ({ message, type, onConfirm, onCancel }) => {
   );
 };
 
+const SoundToggle = () => {
+  const { isSoundOn, toggleSound } = useSound();
+  return (
+    <button onClick={toggleSound} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', opacity: 0.8 }} title="Toggle Sound">
+      {isSoundOn ? '🔊' : '🔇'}
+    </button>
+  );
+};
+
 function App() {
   const { players, games, addPlayer, removePlayer, updatePlayerAvatar, updateScore, toggleGameActive, toggleGameComplete, updateGame, addCustomGame, deleteGame, resetAllData, resetScores, isLoaded } = usePartyData();
   const [view, setView] = useState('LANDING');
@@ -260,7 +272,8 @@ function App() {
           <span style={{ fontSize: '0.8rem', background: '#ffeaa7', padding: '2px 6px', borderRadius: '4px', fontWeight: 700, color: '#d35400' }}>ZONE</span>
         </div>
 
-        <nav className="app-nav">
+        <nav className="app-nav" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <SoundToggle />
           <button className="glass-btn-ghost" onClick={() => setView('SETUP')}>PLAYERS</button>
           <button className="glass-btn-ghost" onClick={() => setView('LEADERBOARD')}>SCORES</button>
           <button className="glass-btn-ghost" onClick={() => setView('GAME_MANAGER')}>CONFIG</button>
@@ -379,4 +392,10 @@ function App() {
   );
 }
 
-export default App;
+export default function Root() {
+  return (
+    <SoundProvider>
+      <App />
+    </SoundProvider>
+  );
+}
