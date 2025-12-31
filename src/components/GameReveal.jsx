@@ -254,6 +254,8 @@ export function GameReveal({ game, players, updateScore, toggleGameComplete, upd
     // Edit Mode State
     const [isEditing, setIsEditing] = useState(false);
     const [editData, setEditData] = useState({ brief: game.brief, rules: game.rules || [] });
+    // Cute Modal State
+    const [editingScore, setEditingScore] = useState(null);
 
     // Constants
     const COLORS = ['#ff7675', '#74b9ff', '#55efc4', '#ffeaa7', '#a29bfe', '#fd79a8', '#00b894', '#fdcb6e'];
@@ -644,13 +646,7 @@ export function GameReveal({ game, players, updateScore, toggleGameComplete, upd
                                                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                                                             <span style={{ fontSize: '1.2rem', fontWeight: 800, color: '#6c5ce7' }}>{localScores[p.id] || 0} pts</span>
                                                             <button
-                                                                onClick={() => {
-                                                                    const newScore = prompt(`Update score for ${p.name}`, localScores[p.id] || 0);
-                                                                    if (newScore !== null) {
-                                                                        handleScoreChange(p.id, newScore);
-                                                                        updateScore(p.id, game.id, Number(newScore));
-                                                                    }
-                                                                }}
+                                                                onClick={() => setEditingScore({ id: p.id, name: p.name, score: localScores[p.id] || 0 })}
                                                                 style={{ background: 'none', border: 'none', cursor: 'pointer', opacity: 0.3, fontSize: '1rem' }}
                                                             >
                                                                 ✏️
@@ -673,7 +669,72 @@ export function GameReveal({ game, players, updateScore, toggleGameComplete, upd
                     </div>
                 </div>
             )}
-            <style>{`.glass-input:focus { outline: none; border-color: #a29bfe; box-shadow: 0 0 0 4px rgba(162, 155, 254, 0.2); }`}</style>
+
+            {/* CUTE CUSTOM POPUP EDIT MODAL */}
+            {editingScore && (
+                <div style={{
+                    position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
+                    background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(5px)', zIndex: 3000,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center'
+                }}>
+                    <div style={{
+                        background: 'white', borderRadius: '30px', padding: '2rem', width: '350px',
+                        boxShadow: '0 20px 50px rgba(0,0,0,0.2)', textAlign: 'center',
+                        animation: 'pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
+                    }}>
+                        <h3 style={{ fontSize: '1.5rem', marginBottom: '0.5rem', color: '#2d3436' }}>Update Score</h3>
+                        <p style={{ color: '#636e72', marginBottom: '1.5rem' }}>for <strong style={{ color: '#6c5ce7' }}>{editingScore.name}</strong></p>
+
+                        <input
+                            type="number"
+                            autoFocus
+                            value={editingScore.score}
+                            onChange={(e) => setEditingScore({ ...editingScore, score: e.target.value })}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                    handleScoreChange(editingScore.id, editingScore.score);
+                                    updateScore(editingScore.id, game.id, Number(editingScore.score));
+                                    setEditingScore(null);
+                                }
+                            }}
+                            className="glass-input"
+                            style={{
+                                width: '100%', fontSize: '2rem', textAlign: 'center', padding: '1rem',
+                                borderRadius: '15px', border: '2px solid #a29bfe', marginBottom: '2rem',
+                                color: '#2d3436'
+                            }}
+                        />
+
+                        <div style={{ display: 'flex', gap: '1rem' }}>
+                            <button
+                                onClick={() => setEditingScore(null)}
+                                style={{
+                                    flex: 1, padding: '1rem', borderRadius: '15px', border: 'none',
+                                    background: '#dfe6e9', color: '#636e72', fontWeight: 700, cursor: 'pointer'
+                                }}
+                            >
+                                CANCEL
+                            </button>
+                            <button
+                                onClick={() => {
+                                    handleScoreChange(editingScore.id, editingScore.score);
+                                    updateScore(editingScore.id, game.id, Number(editingScore.score));
+                                    setEditingScore(null);
+                                }}
+                                style={{
+                                    flex: 1, padding: '1rem', borderRadius: '15px', border: 'none',
+                                    background: '#6c5ce7', color: 'white', fontWeight: 700, cursor: 'pointer',
+                                    boxShadow: '0 4px 15px rgba(108, 92, 231, 0.3)'
+                                }}
+                            >
+                                SAVE ✨
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            <style>{`.glass-input:focus { outline: none; border-color: #a29bfe; box-shadow: 0 0 0 4px rgba(162, 155, 254, 0.2); } .glass-btn-ghost:hover { background: rgba(255,255,255,0.8); }`}</style>
         </>
     );
 }
